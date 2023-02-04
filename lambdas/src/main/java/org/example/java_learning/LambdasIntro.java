@@ -95,7 +95,7 @@ Suppose you want to filter all the hidden files in a directory. You need to star
 		boolean test(Apple a);
 	}
 	static class AppleWeightPredicate implements ApplePredicate {
-	  @Override
+	  	@Override
 		public boolean test(Apple apple) {
 			return apple.getWeight() > 150;
 		}
