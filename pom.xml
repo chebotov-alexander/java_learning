@@ -11,6 +11,7 @@
       <module>generics</module>
       <module>lambdas</module>
       <module>streams</module>
+      <module>streams_benchmarks</module>
     </modules>
     <packaging>pom</packaging>
 

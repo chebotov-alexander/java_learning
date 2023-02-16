@@ -52,4 +52,6 @@ class Terminology {
     */
 }
 
-class Links {}
+class Links {
+    // Java Microbenchmark Harness (JMH)
+}

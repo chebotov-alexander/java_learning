@@ -22,6 +22,110 @@ To summarize:
   - A chain of intermediate operations that form a stream pipeline
   - A terminal operation that executes the stream pipeline and produces a result
  The idea behind a stream pipeline is similar to the builder pattern. In the builder pattern, there’s a chain of calls to set up a configuration (for streams this is a chain of intermediate operations), followed by a call to a build method (for streams this is a terminal operation).
+ Some operations such as filter and map are stateless: they don’t store any state. Some operations such as reduce store state to calculate a value. Some operations such as sorted and distinct also store state because they need to buffer all the elements of a stream before returning a new stream. Such operations are called stateful operations.
+ Prefer an immutable (stateless) approach in order to process a stream in parallel and expect a correct result.
+ Dealing with a stream of infinite size limit its size explicitly using the operation limit; otherwise, the terminal operation such as forEach will compute forever. Sort or reduce can't be applied on an infinite stream because all elements need to be processed.
+ Reduce method (.stream().reduce(...)) is meant to combine two values and produce a new one - it’s an immutable reduction. In contrast, the collect method (.stream().collect(...)) is designed to mutate a container to accumulate the result it’s supposed to produce. So be aware of parallelism issues.
+ Terminate streams:
+  - collect is a terminal operation that takes as argument various recipes (called collectors) for accumulating the elements of a stream into a summary result.
+  - Predefined collectors include reducing and summarizing stream elements into a single value, such as calculating the minimum, maximum, or average. Those collectors are summarized in table below.
+  - Predefined collectors let you group elements of a stream with groupingBy and partition elements of a stream with partitioningBy.
+  - Collectors compose effectively to create multilevel groupings, partitions, and reductions.
+  - You can develop your own collectors by implementing the methods defined in the Collector interface.
+
+The streams interface in java.util.stream.Stream.
+ _______________________________________________________________________________________________
+|This table shows some Stream API operations.                                                   |
+|SU - stateful-unbounded                                                                        |
+|SB - stateful-bounded                                                                          |
+|_______________________________________________________________________________________________|
+|             |                  |                |      Type/functional       |    Function    |
+|  Operation  |      Type        |  Return type   |      interface used        |   descriptor   |
+|_____________|__________________|________________|____________________________|________________|
+| filter      | Intermediate     | Stream<T>      | Predicate<T>               | T -> boolean   |
+| distinct    | Intermediate SO  | Stream<T>      |                            |                |
+| takeWhile   | Intermediate     | Stream<T>      | Predicate<T>               | T -> boolean   |
+| dropWhile   | Intermediate     | Stream<T>      | Predicate<T>               | T -> boolean   |
+| skip        | Intermediate SB  | Stream<T>      | long                       |                |
+| limit       | Intermediate SB  | Stream<T>      | long                       |                |
+| map         | Intermediate     | Stream<R>      | Function<T, R>             | T -> R         |
+| flatMap     | Intermediate     | Stream<R>      | Function<T, Stream<R>>     | T -> Stream<R> |
+| sorted      | Intermediate SU  | Stream<T>      | Comparator<T>              | (T, T) -> int  |
+| anyMatch    | Terminal         | boolean        | Predicate<T>               | T -> boolean   |
+| noneMatch   | Terminal         | boolean        | Predicate<T>               | T -> boolean   |
+| allMatch    | Terminal         | boolean        | Predicate<T>               | T -> boolean   |
+| findAny     | Terminal         | Optional<T>    |                            |                |
+| findFirst   | Terminal         | Optional<T>    |                            |                |
+| forEach     | Terminal         | void           | Consumer<T>                | T -> void      |
+| collect     | Terminal         | R              | Collector<T, A, R>         |                |
+| reduce      | Terminal SB      | Optional<T>    | BinaryOperator<T>          | (T, T) -> T    |
+| count       | Terminal         | long           |                            |                |
+|_____________|__________________|________________|____________________________|________________|
+
+
+ _______________________________________________________________________________________________
+|This table shows the main static factory methods of the Collectors class.                      |
+|SU - stateful-unbounded                                                                        |
+|----------------- ------------------------- ---------------------------------------------------|
+| Factory method  |     Returned type       |                  Used to                          |
+|-----------------|-------------------------|---------------------------------------------------|
+|toList           |List<T>                  |Gather all the stream’s items in a List.           |
+|List<Dish> dishes = menuStream.collect(toList());                                              |
+|-----------------------------------------------------------------------------------------------|
+|toSet            |Set<T>                   |Gather all the stream’s items in a Set, eliminating|
+|                 |                         |duplicates.                                        |
+|Set<Dish> dishes = menuStream.collect(toSet());                                                |
+|-----------------------------------------------------------------------------------------------|
+|toCollection     |Collection<T>            |Gather all the stream’s items in the collection    |
+|                 |                         |created by the provided supplier.                  |
+|Collection<Dish> dishes = menuStream.collect(toCollection(), ArrayList::new);                  |
+|-----------------------------------------------------------------------------------------------|
+|counting         |Long                     |Count the number of items in the stream.           |
+|long howManyDishes = menuStream.collect(counting());                                           |
+|-----------------------------------------------------------------------------------------------|
+|summingInt       |Integer                  |Sum the values of an Integer property of the items |
+|                 |                         |in the stream.                                     |
+|int totalCalories = menuStream.collect(summingInt(Dish::getCalories));                         |
+|-----------------------------------------------------------------------------------------------|
+|averagingInt     |Double                   |Calculate the average value of an Integer property |
+|                 |                         |of the items in the stream.                        |
+|double avgCalories = menuStream.collect(averagingInt(Dish::getCalories));                      |
+|-----------------------------------------------------------------------------------------------|
+|summarizingInt   |IntSummaryStatistics     |Collect statistics regarding an Integer property of|
+|                 |                         |the items in the stream, such as the maximum,      |
+|                 |                         |minimum, total, and average.                       |
+|IntSummaryStatistics menuStatistics = menuStream.collect(summarizingInt(Dish::getCalories));   |
+|-----------------------------------------------------------------------------------------------|
+|joining          |String                   |Concatenate the strings resulting from the         |
+|                 |                         |invocation of the toString method on each item of  |
+|                 |                         |the stream.                                        |
+|String shortMenu = menuStream.map(Dish::getName).collect(joining(", "));                       |
+|-----------------------------------------------------------------------------------------------|
+|maxBy / minBy    |Optional<T>              |An Optional wrapping the maximal/minimal element   |
+|                 |                         |in this stream according to the given comparator or|
+|                 |                         |Optional.empty() if the stream is empty.           |
+|Optional<Dish> fattest = menuStream.collect(maxBy(comparingInt(Dish::getCalories)));           |
+|-----------------------------------------------------------------------------------------------|
+|reducing         |The type produced by the |Reduce the stream to a single value starting from  |
+|                 |reduction operation      |an initial value used as accumulator and           |
+|                 |                         |iteratively combining it with each item of the     |
+|                 |                         |stream using a BinaryOperator.                     |
+|int totalCalories = menuStream.collect(reducing(0, Dish::getCalories, Integer::sum));          |
+|-----------------------------------------------------------------------------------------------|
+|collectingAndThen|The type returned by the |Wrap another collector and apply a transformation  |
+|                 |transforming function    |function to its result.                            |
+|int howManyDishes = menuStream.collect(collectingAndThen(toList(), List::size));               |
+|-----------------------------------------------------------------------------------------------|
+|groupingBy       |Map<K, List<T>>          |Group the items in the stream based on the value of|
+|                 |                         |one of their properties and use those values as    |
+|                 |                         |keys in the resulting Map.                         |
+|Map<Dish.Type,List<Dish>> dishesByType = menuStream.collect(groupingBy(Dish::getType));        |
+|-----------------------------------------------------------------------------------------------|
+|partitioningBy   |Map<Boolean, List<T>>    |Partition the items in the stream based on the     |
+|                 |                         |result of the application of a predicate to each of|
+|                 |                         |them.                                              |
+|Map<Boolean,List<Dish>> vegiDishes = menuStream.collect(partitioningBy(Dish::isVegetarian));   |
+|_______________________________________________________________________________________________|
 
 */
     // Here is a function that returns names of dishes that are low in calories, sorted by number of calories.
