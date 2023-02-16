@@ -12,6 +12,7 @@
       <module>lambdas</module>
       <module>streams</module>
       <module>streams_benchmarks</module>
+        <module>data_structures</module>
     </modules>
     <packaging>pom</packaging>
 

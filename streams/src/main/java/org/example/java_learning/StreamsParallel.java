@@ -11,7 +11,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class StreamParallel {
+public class StreamsParallel {
     /*
     A parallel (parallelStream) stream is a stream that splits its elements into multiple chunks, processing each chunk with a different thread. Thus, you can automatically partition the workload of a given operation on all the cores of your multicore processor and keep all of them equally busy.
     Note that, in reality, calling the method parallel on a sequential stream doesn’t imply any concrete transformation on the stream itself. Internally, a boolean flag is set to signal that you want to run in parallel all the operations that follow the invocation to parallel. Similarly, you can turn a parallel stream into a sequential one by invoking the method sequential on it. Note that you might think that by combining these two methods you could achieve finer-grained control over which operations you want to perform in parallel and which ones sequentially while traversing the stream. For example, you could do something like the following:
@@ -103,9 +103,9 @@ public class StreamParallel {
     // Check the results it gives:
     public static void testCorrectnessSideEffect() {
         System.out.println("SideEffect sum done in: "
-            + measurePerf(StreamParallel::sideEffectSum, 10_000_000L) + " msecs" );
+            + measurePerf(StreamsParallel::sideEffectSum, 10_000_000L) + " msecs" );
         System.out.println("SideEffect parallel sum done in: "
-            + measurePerf(StreamParallel::sideEffectParallelSum, 10_000_000L) + " msecs" );
+            + measurePerf(StreamsParallel::sideEffectParallelSum, 10_000_000L) + " msecs" );
     }
     // This time the performance of your method isn’t important. The only relevant thing is that each execution returns a different result, all distant from the correct value of 50000005000000. This is caused by the fact that multiple threads are concurrently accessing the accumulator and, in particular, executing total += value, which, despite its appearance, isn’t an atomic operation. The origin of the problem is that the method invoked inside the forEach block has the side effect of changing the mutable state of an object shared among multiple threads. It’s mandatory to avoid these kinds of situations if you want to use parallel streams without incurring similar bad surprises. Now you know that a shared mutable state doesn’t play well with parallel streams and with parallel computations in general.
 
@@ -205,7 +205,7 @@ public class StreamParallel {
     }
     public static void testForkJoinSum() {
         System.out.println("ForkJoin sum done in: "
-                + measurePerf(StreamParallel::forkJoinSum, 10_000_000L) + " msecs");
+                + measurePerf(StreamsParallel::forkJoinSum, 10_000_000L) + " msecs");
         // Here, the performance is worse than the version using the parallel stream, but only because you’re obliged to put the whole stream of numbers into a long[] before being allowed to use it in the ForkJoinSumCalculator task.
     }
 

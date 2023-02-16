@@ -5,14 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ef4e8d08-8460-43bf-8a75-454b40d80374" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/org/example/java_learning/Dish.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/streams/src/main/java/org/example/java_learning/StreamSomeMore.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java_learning_main/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/java_learning_main/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/java_learning_main/src/main/java/org/example/java_learning/JavaLearningMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/java_learning_main/src/main/java/org/example/java_learning/JavaLearningMain.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/org/example/java_learning/CaloricLevel.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/org/example/java_learning/CaloricLevel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/org/example/java_learning/Const.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/org/example/java_learning/Const.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/src/main/java/org/example/java_learning/Dish.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/org/example/java_learning/Dish.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data_structures/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/data_structures/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lambdas/src/main/java/org/example/java_learning/LambdasIntro.java" beforeDir="false" afterPath="$PROJECT_DIR$/lambdas/src/main/java/org/example/java_learning/LambdasIntro.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/streams/src/main/java/org/example/java_learning/RefactoringTestingDebugging.java" beforeDir="false" afterPath="$PROJECT_DIR$/streams/src/main/java/org/example/java_learning/RefactoringTestingDebugging.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/streams/src/main/java/org/example/java_learning/StreamMethods.java" beforeDir="false" afterPath="$PROJECT_DIR$/streams/src/main/java/org/example/java_learning/StreamMethods.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/streams/src/main/java/org/example/java_learning/StreamsIntro.java" beforeDir="false" afterPath="$PROJECT_DIR$/streams/src/main/java/org/example/java_learning/StreamsIntro.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/streams/src/main/java/org/example/java_learning/StreamsMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/streams/src/main/java/org/example/java_learning/StreamsMain.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/streams/src/main/java/org/example/java_learning/StreamsParallel.java" beforeDir="false" afterPath="$PROJECT_DIR$/streams/src/main/java/org/example/java_learning/StreamsParallel.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,6 +32,7 @@
       <list>
         <option value="Interface" />
         <option value="Class" />
+        <option value="Enum" />
       </list>
     </option>
   </component>
@@ -44,6 +50,11 @@
       <MavenGeneralSettings>
         <option name="useMavenConfig" value="true" />
       </MavenGeneralSettings>
+    </option>
+    <option name="importingSettings">
+      <MavenImportingSettings>
+        <option name="workspaceImportEnabled" value="true" />
+      </MavenImportingSettings>
     </option>
   </component>
   <component name="ProjectCodeStyleSettingsMigration">
@@ -64,12 +75,13 @@
     "last_opened_file_path": "/home/alexche/Downloads/reading_now/Java/repo/java_learning",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "reference.settingsdialog.IDE.editor.colors.General"
+    "project.structure.side.proportion": "0.18925233",
+    "settings.editor.selected.configurable": "reference.settings.project.maven.repository.indices"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/streams_benchmarks/src/main/java/org/example/java_learning" />
       <recent name="$PROJECT_DIR$/lambdas/src/main/resources/org/example/java_learning" />
       <recent name="$PROJECT_DIR$/lambdas/src/main/resources" />
       <recent name="$PROJECT_DIR$/java_learning_main/src/main/java/org/example/java_learning" />
@@ -86,9 +98,10 @@
       <command value="mvn compile" />
       <command value="mvn clean" />
       <command value="mvn install" />
+      <command value="mvn package" />
     </option>
   </component>
-  <component name="RunManager" selected="Application.JavaLearningMain">
+  <component name="RunManager" selected="Application.StreamsMain">
     <configuration default="true" type="AZURE_FUNCTION_SUPPORT" factoryName="Run Functions">
       <option name="appName" />
       <option name="appServicePlanName" />
@@ -218,8 +231,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.JavaLearningMain" />
         <item itemvalue="Application.StreamsMain" />
+        <item itemvalue="Application.JavaLearningMain" />
         <item itemvalue="Application.GenericsMain" />
         <item itemvalue="Application.LambdasMain" />
         <item itemvalue="AWS Lambda.[Local] org.example.java_learning.App::main" />

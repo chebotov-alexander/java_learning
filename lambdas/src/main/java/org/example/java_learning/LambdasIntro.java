@@ -7,6 +7,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 import static java.util.Comparator.comparing;
 
@@ -200,6 +201,26 @@ Suppose you want to filter all the hidden files in a directory. You need to star
 //	});
 //  //after
 //	button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
+
+	public static void onceAgain() {
+		List<String> numbers = Arrays.asList("one", "two", "three");
+
+		System.out.println("Anonymous class:");
+		numbers.forEach(new Consumer<String>() {
+			@Override
+			public void accept(String s) {
+				System.out.println(s + "");
+			}
+		});
+
+		System.out.println("Lambda expression:");
+		numbers.forEach(s -> System.out.println(s + ""));
+
+		System.out.println("Method reference:");
+		numbers.forEach(System.out::println);
+		// Note that with method reference you can't do something like + "".
+	}
+
 
 	// Prepare some stuff
 	private static List<Apple> inventory = LambdasMain.inventory;

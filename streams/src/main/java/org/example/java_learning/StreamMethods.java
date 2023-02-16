@@ -664,7 +664,6 @@ public class StreamMethods {
             System.out.println("Dishes grouped by type: " + groupDishesByType);
             // Sometimes author of the target class, in this case Dish class, didn’t provide such an operation as a method, so you can’t use a method reference in this case. Use lambdas.
             // For instance, classify as "diet" all dishes with 400 calories or fewer, set to "normal" the dishes having between 400 and 700 calories, and set to "fat" the ones with more than 700 calories.
-            enum CaloricLevel { DIET, NORMAL, FAT }
             Map<CaloricLevel, List<Dish>> dishesByCaloricLevel = menu.stream().collect(
                 groupingBy(dish -> {
                     if (dish.getCalories() <= 400) return CaloricLevel.DIET;
