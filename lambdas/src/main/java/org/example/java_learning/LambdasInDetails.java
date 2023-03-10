@@ -15,6 +15,112 @@ import static java.util.Comparator.comparing;
  */
 public class LambdasInDetails {
 /*
+=================================================================================================
+|Table of common functional interfaces.                                                         |
+|===================|===========================================================================|
+|Signature          |Functional interface                                                       |
+|===================|===========================================================================|
+|T -> boolean       |Predicate<T>, [Int|Long|Double]Predicate                                   |
+|-------------------|---------------------------------------------------------------------------|
+|(T, U) -> boolean  |BiPredicate<T, U>                                                          |
+|-------------------|---------------------------------------------------------------------------|
+|T -> void          |Consumer<T>, [Int|Long|Double]Consumer                                     |
+|-------------------|---------------------------------------------------------------------------|
+|(T, U) -> void     |BiConsumer<T, U>, [ObjInt|ObjLong|ObjDouble]Consumer<T>                    |
+|-------------------|---------------------------------------------------------------------------|
+|() -> T            |Supplier<T>, [Boolean|Int|Long|Double]Supplier                             |
+|-------------------|---------------------------------------------------------------------------|
+|T -> R             |Function<T, R>, IntFunction<R>, IntToDoubleFunction, IntToLongFunction,    |
+|                   |LongFunction<R>, LongToDoubleFunction, LongToIntFunction,                  |
+|                   |DoubleFunction<R>, DoubleToIntFunction, DoubleToLongFunction,              |
+|                   |ToIntFunction<T>, ToDoubleFunction<T>, ToLongFunction<T>                   |
+|-------------------|---------------------------------------------------------------------------|
+|(T, U) -> R        |BiFunction<T, U, R>, [ToInt|ToLong|ToDouble]BiFunction<T, U>               |
+|-------------------|---------------------------------------------------------------------------|
+|T -> T             |UnaryOperator<T>, [Int|Long|Double]UnaryOperator                           |
+|-------------------|---------------------------------------------------------------------------|
+|(T, T) -> T        |BinaryOperator<T>, [Int|Long|Double]BinaryOperator                         |
+|___________________|___________________________________________________________________________|
+
+=================================================================================================
+|Table of examples of lambdas with functional interfaces.                                       |
+|===============================|===============================================================|
+|Use case                       |Matching functional interface                                  |
+|===============================|===============================================================|
+|A boolean expression           |T -> boolean                                                   |
+|                               |Predicate<List<String>>                                        |
+|(List<String> list) -> list.isEmpty()                                                          |
+|-------------------------------|---------------------------------------------------------------|
+|Creating objects               |() -> T                                                        |
+|                               |Supplier<Apple>                                                |
+|() -> new Apple(10)                                                                            |
+|-------------------------------|---------------------------------------------------------------|
+|Consuming from an object       |T -> void                                                      |
+|                               |Consumer<Apple>                                                |
+|(Apple a) -> System.out.println(a.getWeight())                                                 |
+|-------------------------------|---------------------------------------------------------------|
+|Select/extract from an object  |T -> R                                                         |
+|                               |Function<String, Integer> or ToIntFunction<String>             |
+|(String s) -> s.length()                                                                       |
+|-------------------------------|---------------------------------------------------------------|
+|Combine two values             |(T, T) -> T                                                    |
+|                               |IntBinaryOperator                                              |
+|(int a, int b) -> a * b                                                                        |
+|-------------------------------|---------------------------------------------------------------|
+|Compare two objects            |(T, U) -> R                                                    |
+|                               |Comparator<Apple> or BiFunction<Apple, Apple, Integer> or      |
+|                               |ToIntBiFunction<Apple, Apple>                                  |
+|(Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight())                               |
+|_______________________________|_______________________________________________________________|
+
+Method references:
+    () -> Thread.currentThread().dumpStack()
+        Thread.currentThread()::dumpStack
+    (str, i) -> str.substring(i)
+        String::substring
+    (String s) -> System.out.println(s)
+        System.out::println
+    (String s) -> this.isValidName(s)
+        this::isValidName
+    str.sort((s1, s2) -> s1.compareToIgnoreCase(s2));
+        str.sort(String::compareToIgnoreCase);
+
+There are three main kinds of method references:
+ 1. A method reference to a static method.
+  For example, the method parseInt of Integer, written:
+    ToIntFunction<String> stringToInt = (String s) -> Integer.parseInt(s);
+    ToIntFunction<String> stringToInt = Integer::parseInt;
+ 2. A method reference to an instance method of an arbitrary type.
+  For example, the method length of a String, written:
+    String::length
+  Another one:
+    BiPredicate<List<String>, String>> contains = (list, element) -> list.contains(element);
+    BiPredicate<List<String>, String>> contains = List::contains;
+  This is because the target type describes a function descriptor (List<String>, String) -> boolean, and List::contains can be unpacked to that function descriptor.
+  The idea is that you’re referring to a method to an object that will be supplied as one of the parameters of the lambda. For example, the lambda expression:
+    (String s) -> s.toUpperCase()
+   can be rewritten as:
+    String::toUpperCase.
+ 3. A method reference to an instance method of an existing object or expression.
+  For example, suppose you have a local variable expensiveTransaction that holds an object of type Transaction, which supports an instance method getValue; you can write lambda expression:
+    () -> expensiveTransaction.getValue()
+   can be rewritten as:
+    expensiveTransaction::getValue
+  This third kind of method reference is particularly useful when you need to pass around a method defined as a private helper. For example, say you defined a helper method isValidName:
+    private boolean isValidName(String string) {
+        return Character.isUpperCase(string.charAt(0));
+    }
+  You can now pass this method around in the context of a Predicate<String> using a method reference:
+    filter(words, this::isValidName)
+  Another one:
+    Predicate<String> startsWithNumber = (String string) -> this.startsWithNumber(string);
+    Predicate<String> startsWithNumber = this::startsWithNumber;
+    // startsWithNumber ia a private helper method
+
+*/
+
+
+/*
 Think of lambda expressions as anonymous functions, methods without declared names, but which can also be passed as arguments to a method as you can with an anonymous class or stored in a variable. Lambda isn’t associated with a particular class like a method is. But like a method, a lambda has a list of parameters, a body, a return type, and a possible list of exceptions that can be thrown.
 No need to write a lot of boilerplate like you do for anonymous classes:
   1. Anonymous classes:
@@ -411,8 +517,8 @@ No need to write a lot of boilerplate like you do for anonymous classes:
           For example, the method length of a String, written:
             String::length
           Another one:
-            BiPredicate<List<String>, String> contains = (list, element) -> list.contains(element);
-                BiPredicate<List<String>, String> contains = List::contains;
+            BiPredicate<List<String>, String>> contains = (list, element) -> list.contains(element);
+            BiPredicate<List<String>, String>> contains = List::contains;
           This is because the target type describes a function descriptor (List<String>, String) -> boolean, and List::contains can be unpacked to that function descriptor.
           The idea is that you’re referring to a method to an object that will be supplied as one of the parameters of the lambda. For example, the lambda expression:
             (String s) -> s.toUpperCase()

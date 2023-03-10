@@ -12,7 +12,9 @@
       <module>lambdas</module>
       <module>streams</module>
       <module>streams_benchmarks</module>
-        <module>data_structures</module>
+      <module>data_structures</module>
+      <module>java_util</module>
+      <module>core</module>
     </modules>
     <packaging>pom</packaging>
 

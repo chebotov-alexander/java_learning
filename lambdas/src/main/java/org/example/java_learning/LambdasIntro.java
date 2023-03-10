@@ -16,26 +16,27 @@ import static java.util.Comparator.comparing;
  * Functions in Java and Method reference as first-class citizens (values).
  */
 public class LambdasIntro {
-/*
-Lambdas and method references, provide the ability to concisely pass code or methods as arguments to be executed in the middle of doing something else. Lambdas make this sort of idea much more widely usable: from simply parameterizing a sort method with code to do the comparison to expressing complex queries on collections of data using the new Streams API. Event handlers and callbacks, where you register an object containing a method to be used when some event happens, heavily relies on lambdas and method references.
-Lambdas and method references give you a new concise way to express behavior parameterization. Suppose you want to write two methods that differ in only a few lines of code. You can now simply pass the code of the parts that differ as an argument (this programming technique is shorter, clearer, and less error-prone than the common tendency to use copy and paste). Experts will here note that behavior parameterization could, prior to Java 8, be encoded using anonymous classes — but lambdas and method references increased code conciseness and clarity.
+	/*
+	Lambdas and method references, provide the ability to concisely pass code or methods as arguments to be executed in the middle of doing something else. Lambdas make this sort of idea much more widely usable: from simply parameterizing a sort method with code to do the comparison to expressing complex queries on collections of data using the new Streams API. Event handlers and callbacks, where you register an object containing a method to be used when some event happens, heavily relies on lambdas and method references.
+	Lambdas and method references give you a new concise way to express behavior parameterization. Suppose you want to write two methods that differ in only a few lines of code. You can now simply pass the code of the parts that differ as an argument (this programming technique is shorter, clearer, and less error-prone than the common tendency to use copy and paste). Experts will here note that behavior parameterization could, prior to Java 8, be encoded using anonymous classes — but lambdas and method references increased code conciseness and clarity.
 
-Functional-style programming is another style of programming, just like object-oriented programming, but centered on using functions as values.
-No shared mutable data and the ability to pass methods and functions—code—to other methods are the cornerstones of what’s generally described as the paradigm of functional programming. In contrast, in the imperative programming paradigm you typically describe a program in terms of a sequence of statements that mutate state. The no-shared-mutable-data requirement means that a method is perfectly described solely by the way it transforms arguments to results; in other words, it behaves as a mathematical function and has no (visible) side effects.
-Note that classical object-oriented programming and functional programming, as extremes, might appear to be in conflict. But the idea is to get the best from both programming paradigms, so you have a better chance of having the right tool for the job.
+	Functional-style programming is another style of programming, just like object-oriented programming, but centered on using functions as values.
+	No shared mutable data and the ability to pass methods and functions—code—to other methods are the cornerstones of what’s generally described as the paradigm of functional programming. In contrast, in the imperative programming paradigm you typically describe a program in terms of a sequence of statements that mutate state. The no-shared-mutable-data requirement means that a method is perfectly described solely by the way it transforms arguments to results; in other words, it behaves as a mathematical function and has no (visible) side effects.
+	Note that classical object-oriented programming and functional programming, as extremes, might appear to be in conflict. But the idea is to get the best from both programming paradigms, so you have a better chance of having the right tool for the job.
 
-Suppose you want to filter all the hidden files in a directory. You need to start writing a method that, given a File, will tell you whether it’s hidden. Fortunately, there’s such a method in the File class called isHidden. It can be viewed as a function that takes a File and returns a boolean. But to use it for filtering, you need to wrap it into a FileFilter object that you then pass to the File.listFiles method, as follows:
-*/
-	File[] hiddenFilesWithAnonymousClass = new File(".").listFiles(new FileFilter() {
-		public boolean accept(File file) {
-			return file.isHidden(); // Filtering hidden files!
-		}
-	});
-// You already have the method isHidden that you could use. Why do you have to wrap it up in a verbose FileFilter class and then instantiate it? Because that’s what you had to do prior to Java 8. Now, you can rewrite that code as follows:
+	Suppose you want to filter all the hidden files in a directory. You need to start writing a method that, given a File, will tell you whether it’s hidden. Fortunately, there’s such a method in the File class called isHidden. It can be viewed as a function that takes a File and returns a boolean. But to use it for filtering, you need to wrap it into a FileFilter object that you then pass to the File.listFiles method, as follows:
+	*/
+	File[] hiddenFilesWithAnonymousClass = new File(".").listFiles(
+			new FileFilter() {
+				public boolean accept(File file) {
+					return file.isHidden(); // Filtering hidden files!
+				}
+			});
+	// You already have the method isHidden that you could use. Why do you have to wrap it up in a verbose FileFilter class and then instantiate it? Because that’s what you had to do prior to Java 8. Now, you can rewrite that code as follows:
 	File[] hiddenFilesWithMethodReference = new File(".").listFiles(File::isHidden);
 //	Method reference :: syntax meaning "use this method as a value".
 
-// Same with instead of writing verbose code (to sort a list of apples in inventory based on their weight) like
+	// Same with instead of writing verbose code (to sort a list of apples in inventory based on their weight) like
 	void mockMethod1() {
 		Collections.sort(inventory, new Comparator<Apple>() {
 			public int compare(Apple a1, Apple a2) {
@@ -43,11 +44,13 @@ Suppose you want to filter all the hidden files in a directory. You need to star
 			}
 		});
 	}
-//  in Java 8 you can write more concise code that reads a lot closer to the problem statement, like the following:
+
+	//  in Java 8 you can write more concise code that reads a lot closer to the problem statement, like the following:
 	void mockMethod2() {
 		inventory.sort(comparing(Apple::getWeight));
 	}
-// For example, {(int x) -> x + 1} means "the function that, when called with argument x, returns the value x + 1". You could define a method "add1" inside a class "MyMathsUtils" and then write "MyMathsUtils::add1", but the new lambda syntax is more concise for cases where you don’t have a convenient method and class available.
+
+	// For example, {(int x) -> x + 1} means "the function that, when called with argument x, returns the value x + 1". You could define a method "add1" inside a class "MyMathsUtils" and then write "MyMathsUtils::add1", but the new lambda syntax is more concise for cases where you don’t have a convenient method and class available.
 //	Suppose you have a class Apple with a method getColor and a variable inventory holding a list of Apples; then you might wish to select all the green apples (here using a Color enum type that includes values GREEN and RED) and return them in a list. The word filter is commonly used to express this concept. Before Java 8, you might write a method filterGreenApples:
 	public static List<Apple> filterGreenApples(List<Apple> inventory) {
 		List<Apple> result = new ArrayList<>();
@@ -58,7 +61,8 @@ Suppose you want to filter all the hidden files in a directory. You need to star
 		}
 		return result;
 	}
-// But next, somebody would like the list of heavy apples (say over 150 g), and so, with a heavy heart, you’d write the following method to achieve this (perhaps even using copy and paste):
+
+	// But next, somebody would like the list of heavy apples (say over 150 g), and so, with a heavy heart, you’d write the following method to achieve this (perhaps even using copy and paste):
 	public static List<Apple> filterHeavyApples(List<Apple> inventory) {
 		List<Apple> result = new ArrayList<>();
 		for (Apple apple : inventory) {
@@ -68,39 +72,46 @@ Suppose you want to filter all the hidden files in a directory. You need to star
 		}
 		return result;
 	}
-// We all know the dangers of copy and paste for software engineering (updates and bug fixes to one variant but not the other), and hey, these two methods vary only in one line: the highlighted condition inside the if construct. If the difference between the two method calls in the highlighted code had been what weight range was acceptable, then you could have passed lower and upper acceptable weights as arguments to filter—perhaps (150, 1000) to select heavy apples (over 150 g) or (0, 80) to select light apples (under 80 g). But Java 8 makes it possible to pass the code of the condition as an argument, avoiding code duplication of the filter method. You can now write this:
+
+	// We all know the dangers of copy and paste for software engineering (updates and bug fixes to one variant but not the other), and hey, these two methods vary only in one line: the highlighted condition inside the if construct. If the difference between the two method calls in the highlighted code had been what weight range was acceptable, then you could have passed lower and upper acceptable weights as arguments to filter—perhaps (150, 1000) to select heavy apples (over 150 g) or (0, 80) to select light apples (under 80 g). But Java 8 makes it possible to pass the code of the condition as an argument, avoiding code duplication of the filter method. You can now write this:
 	public static boolean isGreenApple(Apple apple) {
 		return Color.GREEN.equals(apple.getColor());
 	}
+
 	public static boolean isHeavyApple(Apple apple) {
 		return apple.getWeight() > 150;
 	}
+
 	public static List<Apple> filterApples(List<Apple> inventory, Predicate<Apple> p) {
 		List<Apple> result = new ArrayList<>();
 		for (Apple apple : inventory) {
 			if (p.test(apple)) {
-			  result.add(apple);
+				result.add(apple);
 			}
 		}
 		return result;
 	}
+
 	List<Apple> greenApples = filterApples(inventory, LambdasIntro::isGreenApple);
 	List<Apple> heavyApples = filterApples(inventory, LambdasIntro::isHeavyApple);
-// You don’t even need to write a method definition that’s used only once; the code is crisper and clearer because you don’t need to search to find the code you’re passing:
+	// You don’t even need to write a method definition that’s used only once; the code is crisper and clearer because you don’t need to search to find the code you’re passing:
 	List<Apple> greenApples2 = filterApples(inventory, (Apple a) -> Color.GREEN.equals(a.getColor()));
 	List<Apple> heavyApples2 = filterApples(inventory, (Apple a) -> a.getWeight() > 150);
 	List<Apple> weirdApples = filterApples(inventory, (Apple a) -> a.getWeight() < 80 || Color.RED.equals(a.getColor()));
-// But if such a lambda exceeds a few lines in length (so that its behavior isn’t instantly clear), you should instead use a method reference to a method with a descriptive name instead of using an anonymous lambda. Code clarity should be your guide.
+
+	// But if such a lambda exceeds a few lines in length (so that its behavior isn’t instantly clear), you should instead use a method reference to a method with a descriptive name instead of using an anonymous lambda. Code clarity should be your guide.
 // The above example is based on java.util.function.Predicate. However, one can create her own Predicate class like this:
 	interface ApplePredicate {
 		boolean test(Apple a);
 	}
+
 	static class AppleWeightPredicate implements ApplePredicate {
-	  	@Override
+		@Override
 		public boolean test(Apple apple) {
 			return apple.getWeight() > 150;
 		}
 	}
+
 	public static List<Apple> filterApplesApplePredicate(List<Apple> inventory, ApplePredicate p) {
 		List<Apple> result = new ArrayList<>();
 		for (Apple apple : inventory) {
@@ -110,38 +121,42 @@ Suppose you want to filter all the hidden files in a directory. You need to star
 		}
 		return result;
 	}
-// and use it like that:
+
+	// and use it like that:
 	List<Apple> heavyApplesApplePredicate =
-		filterApplesApplePredicate(inventory, new AppleWeightPredicate());
-// or using anonymous class
+			filterApplesApplePredicate(inventory, new AppleWeightPredicate());
+	// or using anonymous class
 	List<Apple> heavyApplesApplePredicateAnonymous =
-		filterApplesApplePredicate(inventory, new ApplePredicate() {
-			public boolean test(Apple apple){
-				return apple.getWeight() > 150;
-			}
-		});
-// and using lambdas
+			filterApplesApplePredicate(inventory, new ApplePredicate() {
+				public boolean test(Apple apple) {
+					return apple.getWeight() > 150;
+				}
+			});
+	// and using lambdas
 	List<Apple> heavyApplesApplePredicateLambda =
-		filterApplesApplePredicate(inventory, (Apple apple) -> apple.getWeight() > 150);
-// and finally type abstraction that eliminates the of filterApplesApplePredicate and ApplePredicate
+			filterApplesApplePredicate(inventory, (Apple apple) -> apple.getWeight() > 150);
+
+	// and finally type abstraction that eliminates the of filterApplesApplePredicate and ApplePredicate
 	public interface Predicate<T> {
 		boolean test(T t);
 	}
+
 	public static <T> List<T> filter(List<T> list, Predicate<T> p) {
 		List<T> result = new ArrayList<>();
-		for(T e: list) {
-			if(p.test(e)) {
+		for (T e : list) {
+			if (p.test(e)) {
 				result.add(e);
 			}
 		}
 		return result;
 	}
-// so that
+
+	// so that
 	List<Apple> typeAbstractionPredicate = filter(inventory, (Apple apple) -> apple.getWeight() > 150);
 
 // So from value parametrization to behavior parametrization and next from classes to anonymous classes to lambdas.
 
-// Real-world examples:
+	// Real-world examples:
 //  - filtering;
 //  - sorting with a Comparator;
 //  - executing a block of code with Runnable;
@@ -160,7 +175,7 @@ Suppose you want to filter all the hidden files in a directory. You need to star
 		inventory.sort(Comparator.comparingInt(Apple::getWeight));
 	}
 
-//  2. Executing a block of code with Runnable (using java.lang.Runnable):
+	//  2. Executing a block of code with Runnable (using java.lang.Runnable):
 //	public interface Runnable {
 //  	// return nothing
 //  	void run();
@@ -171,24 +186,24 @@ Suppose you want to filter all the hidden files in a directory. You need to star
 			System.out.println("Hello world");
 		}
 	});
-//  after
+	//  after
 	Thread runTaskWithLambda = new Thread(() -> System.out.println("Hello world"));
 
-//  3. Returning a result using Callable (using java.util.concurrent.Callable):
+	//  3. Returning a result using Callable (using java.util.concurrent.Callable):
 //	public interface Callable<V> {
 //	  	// return V as a execution result
 //	  	V call();
 //	}
 //  You can use it, as follows, by submitting a task to an executor service. Here you return the name of the Thread that is responsible for executing the task:
 	ExecutorService executorService = Executors.newCachedThreadPool();
-//	before
+	//	before
 	Future<String> callbackWithAnonymousClass = executorService.submit(new Callable<String>() {
 		@Override
 		public String call() throws Exception {
 			return Thread.currentThread().getName();
 		}
 	});
-//  after
+	//  after
 	Future<String> callbackWithLambda = executorService.submit(() -> Thread.currentThread().getName());
 
 //  4. GUI event handling:
@@ -202,26 +217,106 @@ Suppose you want to filter all the hidden files in a directory. You need to star
 //  //after
 //	button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
 
-	public static void onceAgain() {
-		List<String> numbers = Arrays.asList("one", "two", "three");
+	// Prepare some stuff
+	private static List<Apple> inventory = LambdasMain.inventory;
+}
 
-		System.out.println("Anonymous class:");
-		numbers.forEach(new Consumer<String>() {
+class OnceAgain {
+/*
+// Here is few steps to grasp the functional interfaces working mechanism.
+// Step_1. The functional interface name/alias holds concrete behaviour signature (here a mapping from T to boolean). This signature is just a placeholder for its implementation.
+	Predicate<T> {
+		boolean test(T t)
+	}
+// Step_2. Then there's some method parametrized with this behaviour signature.
+	method_name(Predicate<T> p, other method parameters) {
+		...
+		if(p.test(e))
+		...
+	}
+// Step_3. And finally the signature behaviour implementation.
+// Step_3_1. With an anonymous class.
+	new Predicate<String>() {
+		@Override
+		boolean test(Apple apple) {
+			return apple.getWeight() > 150
+		}
+	}
+// Step_3_2. With lambda.
+	(Apple apple) ->  apple.getWeight() > 150
+// same as [(T t) -> t.getWeight() > 150], where [T] as [(Apple apple)] and [boolean] as [apple.getWeight() > 150], so substitute [p.test] with [getWeight() > 150] and [e] with [apple] in [if(p.test(e))].
+----------------------------------------------------------------
+// Step_1.
+	interface Consumer<T> {
+		void accept(T t);
+	}
+// Step_2.
+	void forEach(Consumer<? super T> action) {
+	  for (T t : this) {
+		  action.accept(t);
+	  }
+	}
+// Step_3_1. Call the implementation with the anonymous class.
+	numbers.forEach(
+		new Consumer<String>() {
 			@Override
 			public void accept(String s) {
 				System.out.println(s + "");
 			}
-		});
-
-		System.out.println("Lambda expression:");
-		numbers.forEach(s -> System.out.println(s + ""));
-
-		System.out.println("Method reference:");
-		numbers.forEach(System.out::println);
-		// Note that with method reference you can't do something like + "".
+		}
+	);
+// Step_3_2. Call the implementation with the lambda.
+	numbers.forEach(s -> System.out.println(s + ""));
+// Step_3_3. Call the implementation with the reference method.
+	numbers.forEach(System.out::println);
+	List<String> numbers = Arrays.asList("one", "two", "three");
+----------------------------------------------------------------
+// Step_1.
+	BiConsumer<T, U> {
+		void accept(T t, U u);
 	}
-
-
-	// Prepare some stuff
-	private static List<Apple> inventory = LambdasMain.inventory;
+// Step_2.
+	void parametrized_method(BiConsumer<TupleInt, Integer> action, ...) {
+		action.accept(new TupleInt(), 0);
+	}
+Step_3_3.
+	parametrized_method(Class_name::suitable_implementing_method, ...);
+	class Class_name {
+		void suitable_implementing_method(Tuple r, int x) {
+			r.value1 = fi(x);
+			r.value2 = gi(x);
+		}
+	}
+----------------------------------------------------------------
+// Note that unlike most other functional interfaces, Consumer is expected to operate via side-effects. Its accept method performs provided operation on the given argument or performs provided operation ignoring that argument if any.
+// Step_1.
+	Publisher<T> {
+		void subscribe(Subscriber<? super T> subscriber)
+	}
+// Step_3_2. It's just the implementation with the lambda.
+	Publisher<TempInfo> getTemperatures(String town) {
+		return subscriber -> subscriber.onSubscribe(new TempSubscription(subscriber, town));
+	}
+// It returns a lambda object wrapped around functional interface Publisher
+	println(getTemperatures("))"));
+// prints: "...$$Lambda$14/0x00000008010033e0@a09ee92".
+// Step_2. Actual and direct call on this lambda object.
+	getTemperatures("New York").subscribe(new TempSubscriber());
+// or Step_2 could be like this:
+	private static void getTemperatures(Publisher<TempInfo> publisher, TempSubscriber subscriber) {
+		publisher.subscribe(subscriber);
+	}
+// or Step_3_2 could be like this:
+	runMonitor(
+		subscriber -> subscriber.onSubscribe(new TempSubscription(subscriber, "New York")),
+		new TempSubscriber()
+	);
+// Note that if you do this:
+	Publisher<TempInfo> getTemperatures(String town) {
+		return r -> println(r);
+	}
+// and then this:
+	getTemperatures("New York").subscribe(new TempSubscriber());
+// then you get: "...$TempSubscriber@2a84aee7".
+*/
 }
