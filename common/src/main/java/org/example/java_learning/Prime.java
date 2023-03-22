@@ -14,8 +14,8 @@ public class Prime {
 
     public static boolean isPrimeLittleOptimized(int candidate) {
         return IntStream.rangeClosed(2, candidate - 1)
-                .limit((long) Math.floor(Math.sqrt(candidate)) - 1)
-                .noneMatch(i -> candidate % i == 0);
+            .limit((long) Math.floor(Math.sqrt(candidate)) - 1)
+            .noneMatch(i -> candidate % i == 0);
     }
 
     public static boolean isPrimePerformant(List<Integer> primes, int candidate){

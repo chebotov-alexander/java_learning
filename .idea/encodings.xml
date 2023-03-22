@@ -3,12 +3,18 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/common/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/core/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_structures/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_structures/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/fp/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/fp/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/generics/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/generics/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/java_learning_main/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/java_learning_main/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/java_util/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/java_util/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lambdas/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lambdas/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />

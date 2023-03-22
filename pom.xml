@@ -15,6 +15,7 @@
       <module>data_structures</module>
       <module>java_util</module>
       <module>core</module>
+      <module>fp</module>
     </modules>
     <packaging>pom</packaging>
 
