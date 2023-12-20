@@ -1,8 +1,6 @@
 package org.example.java_learning;
 
-import java.util.LinkedList;
-
-public class JavaConcurrencyAndMemory {
+public class JavaConcurrencyAndMemoryMain {
 /*
 Java Memory {
 In Java, the memory occupied by an object is automatically reclaimed when the object is no longer needed. This is done through a process known as garbage collection (or automatic memory management). Garbage collection is a technique that has been around for years in languages such as Lisp. In other languages such as C and C++ you must call the free() function or the delete operator to reclaim memory, some languages, for example Rust, perform such operations automatically when objects get out of scope.

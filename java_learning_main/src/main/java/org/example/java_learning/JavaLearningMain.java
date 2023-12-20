@@ -54,4 +54,7 @@ class Terminology {
 
 class Links {
     // Java Microbenchmark Harness (JMH)
+
+    // async/await pattern https://en.wikipedia.org/wiki/Async/await
+    // HotSpot Virtual Machine Garbage Collection Tuning Guide / Introduction to Garbage-First (G1) Garbage Collector https://docs.oracle.com/en/java/javase/18/gctuning/garbage-first-g1-garbage-collector1.html#GUID-0394E76A-1A8F-425E-A0D0-B48A3DC82B42
 }
