@@ -35,4 +35,4 @@ build/
 .vscode/
 
 ### Mac OS ###
-.DS_Store
+hs_err_*.log
