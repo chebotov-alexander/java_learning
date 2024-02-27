@@ -2,6 +2,7 @@ package org.example.java_learning;
 
 public class Misc {
 /*
+
 Expressions and Operators {
  The default operator precedence in Java was chosen for compatibility with C; the designers of C chose this precedence so that most expressions can be written naturally without parentheses. Only a few common Java idioms require parentheses. Examples include:
   // Class cast combined with member access

@@ -13,20 +13,27 @@ public class StreamsLambdasCollections {
         // Java 9 introduced a few convenient ways to create small collection objects - Collection factories.
         public static void creatingLists() {
             // Creating a list the old-fashioned way.
-            List<String> friends1 = new ArrayList<>();
-            friends1.add("Raphael");
-            friends1.add("Olivia");
-            friends1.add("Thibaut");
+            List<String> friends1_1 = new ArrayList<>();
+            friends1_1.add("Raphael");
+            friends1_1.add("Olivia");
+            friends1_1.add("Thibaut");
+            List<String> friends1_2 = new ArrayList<>(){{
+                add("Raphael");
+                add("Olivia");
+                add("Thibaut");
+            }};
             // Using Arrays.asList() factory method.
-            List<String> friends2 = Arrays.asList("Raphael", "Olivia");
+            List<String> friends2_1 = Arrays.asList("Raphael", "Olivia");
             // The result is a fixed-sized list that you can update, but not add elements to or remove elements from. Attempting to add elements, results in an UnsupportedModificationException, but updating by using the method set is allowed.
-            friends2.set(0, "Richard");
+            friends2_1.set(0, "Richard");
             try {
-                friends2.add("Thibaut");
+                friends2_1.add("Thibaut");
             }
             catch (UnsupportedOperationException e) {
                 System.out.println("As expected, we can't add items to a list created with Arrays.asList()");
             }
+            // To solve this:
+            List<String> friends2_2 = new ArrayList<>(Arrays.asList("Raphael", "Olivia"));
 
             // Creating a Set from a List. There is no Arrays.asSet() factory method, so the HashSet constructor, which accepts a List, could be used.
             Set<String> friends3 = new HashSet<>(Arrays.asList("Raphael", "Olivia", "Thibaut"));
@@ -37,17 +44,22 @@ public class StreamsLambdasCollections {
 
             // So here comes factories.
             // Creating a List with List.of().
-            List<String> friends5 = List.of("Raphael", "Olivia", "Thibaut");
+            List<String> friends5_1 = List.of("Raphael", "Olivia", "Thibaut");
             // Result list is immutable.
             try {
-                friends5.add("Richard");
+                friends5_1.add("Richard");
                 // or
-                friends5.set(0, "Richard");
+                friends5_1.set(0, "Richard");
             }
             catch (UnsupportedOperationException e) {
                 System.out.println("As expected, we can't add or set items to a immutable list created with List.of().");
             }
             // Nothing is stopping you from having elements that are mutable themselves. If you need a mutable list, you can still instantiate one manually. Finally, note that to prevent unexpected bugs and enable a more-compact internal representation, null elements are disallowed.
+            // Make immutable list mutable
+            List<String> friends5_2 = new ArrayList<>(friends5_1);
+            friends5_2.add("Richard");
+            friends5_2.sort(Comparator.comparing(Object::toString));
+            System.out.println("My sorted list: " + String.join(",", friends5_2));
 
             // Creating a Set with Set.of().
             Set<String> friends6 = Set.of("Raphael", "Olivia", "Thibaut");

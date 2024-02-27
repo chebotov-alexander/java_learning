@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 import java.util.*;
+import java.util.concurrent.atomic.DoubleAdder;
 import java.util.stream.Stream;
 
 public class StreamsIntro {
@@ -274,6 +275,15 @@ The streams interface in java.util.stream.Stream.
                 .distinct()
                 .limit(3)
                 .count();
+
+            DoubleAdder totalCalories = new DoubleAdder();
+            List<Dish> names = Dish.menu;
+            names.stream().forEach(item -> {
+                String name = item.getName();
+                double calories = item.getCalories();
+                totalCalories.add(calories);
+                System.out.printf("%25s | %15s | %10.2d\n", name, item.getCaloricLevel(), (calories > 0.0d) ? calories : "-");
+            });
         }
     }
 }

@@ -165,8 +165,15 @@ Future features:
     https://cr.openjdk.org/~rpressler/loom/Loom-Proposal.html
   - Project Panama: Improved interoperability with native code, to enable Java source code to call functions and use data types from other languages, in a way that is easier and has better performance than today. Vector API (a portable and relatively low-level abstraction layer for SIMD programming) is also developed under Project Panama umbrella.
     https://openjdk.java.net/projects/panama/
-  - Project Valhalla: Value types, objects without identity but with an efficient memory layout and leading to better results of escape analysis.
+  - Project Valhalla: Value types, objects without identity but with an efficient memory layout and leading to better results of escape analysis. Valhalla anticipates adding three core features to the platform: value objects, primitive classes, and specialized generics.
     https://openjdk.org/projects/valhalla/
+    https://openjdk.org/projects/valhalla/design-notes/state-of-valhalla/01-background
+    State of the Values https://cr.openjdk.org/~jrose/values/values-0.html
+    JEP 401: Value Classes and Objects (Preview) https://openjdk.org/jeps/401
+    JEP 402: Enhanced Primitive Boxing (Preview) https://openjdk.org/jeps/402
+
+    Value-based Classes https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/doc-files/ValueBased.html
+
 
 
 
