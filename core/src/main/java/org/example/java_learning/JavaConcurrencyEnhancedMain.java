@@ -1273,7 +1273,7 @@ Other abstractions of threads: non-nested with method calls.
      */
     public static class VirtualThreadsAndStructuredConcurrencyAkaProjectLoom {
         public static void goTo() {
-            JavaEvolutionMain.Concurrency.vThreads();
+            //JavaEvolutionMain.Concurrency.vThreads();
         }
 
         // The Thread class has got we the new builder API along with several factory methods, that allows to create standard and virtual factories and make use of them for a thread execution.

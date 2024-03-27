@@ -5,21 +5,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ef4e8d08-8460-43bf-8a75-454b40d80374" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/common/src/main/java/org/example/java_learning/Day.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/SwitchStatementsExpressions.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/org/example/java_learning/ColoredPoint.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/common/src/main/java/org/example/java_learning/Point.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evolution/src/main/resources/resources_en_US.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/evolution/src/main/resources/resources_fr_CA.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/src/main/java/org/example/java_learning/Person.java" beforeDir="false" afterPath="$PROJECT_DIR$/common/src/main/java/org/example/java_learning/Person.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/core/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/DataTypes.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/DataTypes.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/JavaConcurrencyEnhancedMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/JavaConcurrencyEnhancedMain.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/Misc.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/Misc.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/PatternMatching.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/PatternMatching.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/Records.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/Records.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/Sealed.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/Sealed.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/SwitchStatementsExpressions.java" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/java/org/example/java_learning/SwitchStatementsExpressions.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data_structures/src/main/java/org/example/java_learning/StreamsLambdasCollections.java" beforeDir="false" afterPath="$PROJECT_DIR$/data_structures/src/main/java/org/example/java_learning/StreamsLambdasCollections.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/evolution/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/evolution/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/evolution/src/main/java/org/example/java_learning/JavaEvolutionMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/evolution/src/main/java/org/example/java_learning/JavaEvolutionMain.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fp/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/fp/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/java_learning_main/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/java_learning_main/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/java_learning_main/src/main/java/org/example/java_learning/Caveats.java" beforeDir="false" afterPath="$PROJECT_DIR$/java_learning_main/src/main/java/org/example/java_learning/Caveats.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/java_learning_main/src/main/java/org/example/java_learning/JavaLearningMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/java_learning_main/src/main/java/org/example/java_learning/JavaLearningMain.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/streams/src/main/java/org/example/java_learning/StreamsIntro.java" beforeDir="false" afterPath="$PROJECT_DIR$/streams/src/main/java/org/example/java_learning/StreamsIntro.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,8 +38,9 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Interface" />
-        <option value="Class" />
         <option value="Enum" />
+        <option value="Record" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -62,22 +68,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.JavaLearningMain.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "master",
-    "jdk.selected.JAVA_MODULE": "openjdk-19",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/alexche/Downloads/reading_now/Architecture/design_patterns/head_first_design_patterns_2/repo_head_first_design_patterns_2",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.18925233",
-    "settings.editor.selected.configurable": "preferences.lookFeel"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.JavaLearningMain.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.java_learning [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.java_learning [compile].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.java_learning [install].executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-19&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/alexche/Downloads/reading_now/Architecture/design_patterns/head_first_design_patterns_2/repo_head_first_design_patterns_2&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;SDKs&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.18925233&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="org.example.java_learning" />
@@ -98,8 +107,8 @@
   <component name="RunAnythingCache">
     <option name="myCommands">
       <command value="mvn package" />
-      <command value="mvn clean" />
       <command value="mvn compile" />
+      <command value="mvn clean" />
       <command value="mvn install" />
     </option>
   </component>

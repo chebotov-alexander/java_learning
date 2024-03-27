@@ -127,5 +127,13 @@ Expressions and Operators {
 
 
 }
+
+ 3.10.6. Escape Sequences for Character and String Literals https://docs.oracle.com/javase/specs/jls/se12/html/jls-3.html#jls-3.10.6
+
+ Java Object Serialization Specification: 1 - System Architecture {
+  https://docs.oracle.com/en/java/javase/21/docs/specs/serialization/serial-arch.html#serialization-of-records
+  https://docs.oracle.com/en/java/javase/21/serializable-records/index.html
+ }
+
  */
 }

@@ -1,6 +1,8 @@
 package org.example.java_learning;
 
 import static java.util.Map.entry;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -159,6 +161,12 @@ public class StreamsLambdasCollections {
             favouriteMovies1.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .forEachOrdered(System.out::println);
+            Optional<String> mostOftenString = List.of("a", "a", "b", "c", "c", "c").stream()
+                .collect(groupingBy(s -> s, counting()))
+                .entrySet()
+                .stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey);
             // Nulls.
             // When the key you’re looking up isn’t present, you receive a null reference that you have to check against to prevent a NullPointerException.
             // One way to handle nulls is to provide a default value using getOrDefault.

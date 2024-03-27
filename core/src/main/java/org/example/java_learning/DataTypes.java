@@ -1,5 +1,8 @@
 package org.example.java_learning;
 
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -320,8 +323,92 @@ Type Conversions. Type Casting {
     // Compile-time error!
     void test (D d) { if (d instanceof I) }
  }
+ Narrowing Reference Conversion and Disjoint Types {
+  Narrowing reference conversion is one of the conversions used in type checking cast expressions. It enables an expression of a reference type S to be treated as an expression of a different reference type T, where S is not a subtype of T. A narrowing reference conversion may require a test at run time to validate that a value of type S is a legitimate value of type T. However, there are restrictions that prohibit conversion between certain pairs of types when it can be statically proven that no value can be of both types.
+ */
+    public interface Polygon {}
+    public class Rectangle implements Polygon {}
+    public class Triangle {}
+    public void work(Rectangle r) { Polygon p = (Polygon) r; }
+    public void work(Triangle t) { Polygon p = (Polygon) t; }
+    // Even though the class Triangle and the interface Polygon are unrelated, the cast expression Polygon p = (Polygon) t is also allowed because at run time these types could be related. A developer could declare the following class:
+    class MeshElement extends Triangle implements Polygon {}
+    // Compiler can deduce that there are no values (other than the null reference) shared between two types; these types are considered disjoint.
+    public final class UtahTeapot {}
+    public void work(UtahTeapot u) {
+        //Polygon p = (Polygon) u;
+        // Error: "Inconvertible types; cannot cast 'UtahTeapot' to 'Polygon'".
+        // Because the class UtahTeapot is final, it's impossible for a class to be a descendant of both Polygon and UtahTeapot. Therefore, Polygon and UtahTeapot are disjoint, and the cast statement Polygon p = (Polygon) u isn't allowed.
+    }
+    public sealed interface Shape permits NewPolygon { }
+    public non-sealed interface NewPolygon extends Shape { }
+    public final class NewUtahTeapot { }
+    public class Ring { }
+    public void work(Shape s) {
+        //NewUtahTeapot u = (NewUtahTeapot) s;  // Error
+        Ring r = (Ring) s;                // Permitted
+    }
+ /*
+ }
 }
-
 */
+
+    /**
+     * Non-denotable types
+     */
+    public static class NonDenotableTypes {
+    /*
+     {
+     Java types that you can use in a program, like int, Byte, Comparable, or String, are called denotable types.
+     Non-denotable types, that you can't write in your program, are the types used by a compiler internally:
+      - capture variable type;
+      - intersection type;
+      - anonymous class type.
+      Capture variable type.
+      The capture of a wildcard type is a type that is used by the compiler represent the type of a specific instance of the wildcard type, in one specific place. Example: Take for example a method with two wildcard parameters, void m(Ex<?> e1, Ex<?> e2). The declared types of e1 and e2 are written exactly the same, Ex<?>. But e1 and e2 could have different and incompatible runtime types. The type checker must not consider the types equal even if they are written the same way. Therefore, during compilation the type parameters of e1 and e2 are given specific types, new ones for each place they are used. These new types are called the capture of their declared types. The capture of a wildcard is an unknown, but normal and concrete type. It can be used the same way as other types. For more details see "Capture conversion" or "Wildcard capture" in Generics.
+      Intersection type.
+      The intersection types is a feature that is not widely used in Java. However, it is very powerful as it allows to write very tiny interfaces and combine them on demand. There is no excuse to write big fat interfaces that have dozens of totally unrelated methods. Writing tiny interfaces is good to enforce (The Interface Segregation Principle (ISP) - interfaces should contain the least amount of methods as possible) and lower the coupling of the code. However, what happens when a client wants to read a file and write at the same time? The following code uses intersection types to solve the issue of needing an object that implements several interfaces:
+      */
+        interface FileReader { Collection<String> readLines(); }
+        interface FileWriter { void write(String line); }
+        interface FileDestroyer { void deleteFile(); }
+        class LocalFile implements FileReader, FileWriter, FileDestroyer {
+            @Override
+            public Collection<String> readLines() { return null; }
+            @Override
+            public void write(String line) { }
+            @Override
+            public void deleteFile() { }
+        }
+        // The & symbol means that the method expects a type T that implements both the FileReader and FileWriter interfaces.
+        <T extends FileReader & FileWriter> void readAndWrite(T file) {
+            file.readLines();
+            file.write("Hello");
+        }
+      /*
+     Non-denotable types are inferred as the types of the expressions that are assigned.
+     In such cases, we have a choice of whether to:
+      - infer the type;
+      - reject the expression;
+      - infer a denotable supertype.
+    */
+        public static void testNonDenotableTypes() {
+            // Type of variable a and b isn't a type that you would have read before. But that doesn't stop them from being inferred. The compiler infers them to a non-denotable type: both are inferred type java.util.ImmutableCollections$ListN.
+            // List<java.io.Serializable & Comparable<? extends java.io.Serializable & Comparable<?>>> by IDE.
+            var a = List.of(1, "2", new StringBuilder());
+            // List<java.io.Serializable> by IDE.
+            var b = List.of(new ArrayList<String>(), LocalTime.now());
+
+            // The type is effectively Object but extended with a method called quack().
+            var duck = new Object() {
+                void quack() {
+                    println("Quack!");
+                }
+            };
+            duck.quack();
+            // Prints:
+            //Quack!
+        }
+    }
 
 }

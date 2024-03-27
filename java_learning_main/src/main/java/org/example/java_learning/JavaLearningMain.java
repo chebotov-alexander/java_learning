@@ -18,6 +18,8 @@ public class JavaLearningMain {
 
         SwitchStatementsExpressions.testFallingThrough();
 
+        JavaEvolutionMain.StringTemplates.testLocalizationProcessor();
+
         System.out.println("Java learning END   ---------------------");
     }
 }

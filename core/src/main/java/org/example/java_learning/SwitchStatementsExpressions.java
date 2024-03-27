@@ -43,7 +43,7 @@ Switch Blocks {
     SwitchLabel:
         case CaseConstant {, CaseConstant}
         case null [, default]
-        case CasePattern [Guard]
+        case CasePattern {, CasePattern } [Guard]
         default
     CaseConstant:
         ConditionalExpression
@@ -57,6 +57,7 @@ A {case ... :} label along with its code to the right is called a "switch labele
 
 Every CaseConstant must be either a {constant expression} (https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.29), or the name of an enum constant (§8.9.1), otherwise a compile-time error occurs.
 A {case} label with a CasePattern may have an optional {when} expression, known as a guard, which represents a further test on values that match the pattern. A case label is said to be unguarded if either it has no guard, or it has a guard that is a constant expression with value true; and guarded otherwise.
+If a case label has multiple patterns then it is a compile-time error for any of the patterns to declare any pattern variables. A case label with multiple case patterns can have a guard. The guard governs the case as a whole, rather than the individual patterns.
 
 Falling through {
  When a switch label applies, and that switch label is for a switch rule, the switch rule expression or statement introduced by the switch label is executed, and nothing else. In the case of a switch label for a statement group, all the block statements in the switch block that follow the switch label are executed, including those that appear after subsequent switch labels. The effect is that execution of statements can "fall through labels".

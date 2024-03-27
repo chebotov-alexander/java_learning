@@ -1,5 +1,7 @@
 package org.example.java_learning;
 
+import static org.example.java_learning.Util.println;
+
 /**
  * Project Amber - Pattern Matching for Java
  * Pattern Matching for instanceof
@@ -111,7 +113,7 @@ public class PatternMatching {
             if (!(o instanceof String s))
                 throw new MyException();
             // s is in scope
-            System.out.println(s);
+            println(s);
             ...
         }
 
@@ -123,10 +125,10 @@ public class PatternMatching {
 
             void test1(Object o) {
                 if (o instanceof String s) {
-                    System.out.println(s);      // Field s is shadowed
+                    println(s);      // Field s is shadowed
                     s = s + "\n";               // Assignment to pattern variable
                 }
-                System.out.println(s);          // Refers to field s
+                println(s);          // Refers to field s
             }
             void test2(Object o) {
                 if (o instanceof Point p) {
@@ -161,6 +163,24 @@ public class PatternMatching {
 
     /*
     Extending pattern matching to switch allows an expression to be tested against a number of patterns, each with a specific action, so that complex data-oriented queries can be expressed concisely and safely.
+
+    Summary {
+     Selector Expression Type {
+      The type of a selector expression can either be an integral primitive type or any reference type, such as in the previous examples.
+     }
+     When Clauses {
+      You can add a Boolean expression right after a pattern label with a when clause. This is called a guarded pattern label. The Boolean expression in the when clause is called a guard. A value matches a guarded pattern label if it matches the pattern and, if so, the guard also evaluates to true.
+     }
+     Pattern Label Dominance {
+      Guarded patterns aren't checked for dominance because they're generally undecidable. Consequently, you should order your case labels so that constant labels appear first, followed by guarded pattern labels, and then followed by nonguarded pattern labels.
+     }
+     Type Coverage in switch Expressions and Statements {
+      Switch expressions must be exhausted and statements do not.
+     }
+     Null case Labels {
+      If a selector expression evaluates to null and the switch block does not have null case label, then a NullPointerException is thrown as normal.
+     }
+    }
 
     Dependencies {
      This JEP builds on Pattern Matching for instanceof (JEP 394), delivered in JDK 16, and also the enhancements offered by Switch Expressions (JEP 361). It has co-evolved with Record Patterns (JEP 440).
@@ -206,21 +226,21 @@ public class PatternMatching {
         // Prior to Java 21
         static void testFooBarOld(String s) {
             if (s == null) {
-                System.out.println("Oops!");
+                println("Oops!");
                 return;
             }
             switch (s) {
-                case "Foo", "Bar" -> System.out.println("Great");
-                default           -> System.out.println("Ok");
+                case "Foo", "Bar" -> println("Great");
+                default           -> println("Ok");
             }
         }
         // As of Java 21
         static void testFooBarNew(String s) {
             switch (s) {
-                case null         -> System.out.println("Oops");
-                case "Foo", "Bar" -> System.out.println("Great");
+                case null         -> println("Oops");
+                case "Foo", "Bar" -> println("Great");
                 // To maintain backward compatibility with the current semantics of switch, the default label does not match a null selector.
-                default           -> System.out.println("Ok");
+                default           -> println("Ok");
             }
         }
         /*
@@ -234,9 +254,9 @@ public class PatternMatching {
             switch (response) {
                 case null -> { }
                 case String s -> {
-                    if (s.equalsIgnoreCase("YES")) System.out.println("You got it");
-                    else if (s.equalsIgnoreCase("NO")) System.out.println("Shame");
-                    else System.out.println("Sorry?");
+                    if (s.equalsIgnoreCase("YES")) println("You got it");
+                    else if (s.equalsIgnoreCase("NO")) println("Shame");
+                    else println("Sorry?");
                 }
             }
         }
@@ -248,10 +268,10 @@ public class PatternMatching {
             switch (response) {
                 case null -> { }
                 case String s
-                when s.equalsIgnoreCase("YES") -> { System.out.println("You got it"); }
+                when s.equalsIgnoreCase("YES") -> { println("You got it"); }
                 case String s
-                when s.equalsIgnoreCase("NO") -> { System.out.println("Shame"); }
-                case String s -> { System.out.println("Sorry?"); }
+                when s.equalsIgnoreCase("NO") -> { println("Shame"); }
+                case String s -> { println("Sorry?"); }
             }
         }
         /*
@@ -261,13 +281,13 @@ public class PatternMatching {
         static void testStringEnhanced(String response) {
             switch (response) {
                 case null -> { }
-                case "y", "Y" -> { System.out.println("You got it"); }
-                case "n", "N" -> { System.out.println("Shame"); }
+                case "y", "Y" -> { println("You got it"); }
+                case "n", "N" -> { println("Shame"); }
                 case String s
-                when s.equalsIgnoreCase("YES") -> { System.out.println("You got it"); }
+                when s.equalsIgnoreCase("YES") -> { println("You got it"); }
                 case String s
-                when s.equalsIgnoreCase("NO") -> { System.out.println("Shame"); }
-                case String s -> { System.out.println("Sorry?"); }
+                when s.equalsIgnoreCase("NO") -> { println("Shame"); }
+                case String s -> { println("Sorry?"); }
             }
         }
         /*
@@ -277,28 +297,32 @@ public class PatternMatching {
       Prior to Java 21 the selector expression of the switch must be of the enum type, and the labels must be simple names of the enum's constants:
         */
         // Prior to Java 21
-        public enum Suit0 { CLUBS, DIAMONDS, HEARTS, SPADES }
-        static void testforHearts(Suit0 s) {
+        public enum Suit { CLUBS, DIAMONDS, HEARTS, SPADES }
+        static void testforHearts(Suit s) {
             switch (s) {
-                case HEARTS -> System.out.println("It's a heart!");
-                default -> System.out.println("Some other suit");
+                case HEARTS -> println("It's a heart!");
+                default -> println("Some other suit");
             }
         }
         /*
       Even after adding pattern labels, this constraint leads to unnecessarily verbose code:
         */
         // As of Java 21
-        sealed interface CardClassification permits Suit1, Tarot {}
-        public enum Suit1 implements CardClassification { CLUBS, DIAMONDS, HEARTS, SPADES }
-        final class Tarot implements CardClassification {}
+        sealed interface CardClassification permits Standard, Tarot, Weird {}
+        public enum Standard implements CardClassification { SPADE, HEART, DIAMOND, CLUB }
+        public enum Tarot implements CardClassification { SPADE, HEART, DIAMOND, CLUB, TRUMP, EXCUSE }
+        final class Weird implements CardClassification {}
 
         static void exhaustiveSwitchWithoutEnumSupport(CardClassification c) {
+            // The type of the selector expression is an interface that's been implemented by two enum types. Because the type of the selector expression isn't an enum type, this switch expression uses guarded patterns instead:
             switch (c) {
-                case Suit1 s when s == Suit1.CLUBS -> { System.out.println("It's clubs"); }
-                case Suit1 s when s == Suit1.DIAMONDS -> { System.out.println("It's diamonds"); }
-                case Suit1 s when s == Suit1.HEARTS -> { System.out.println("It's hearts"); }
-                case Suit1 s -> { System.out.println("It's spades"); }
-                case Tarot t -> { System.out.println("It's a tarot"); }
+                case Standard s when s == Standard.CLUB -> { println("It's clubs"); }
+                case Standard s when s == Standard.DIAMOND -> { println("It's diamonds"); }
+                case Standard s -> { println("It's Standard"); }
+                case Tarot t when t == Tarot.HEART -> { println("It's hearts"); }
+                case Tarot t -> { println("It's Tarot"); }
+                case Weird w -> { println("It's Weird"); }
+                default -> throw new IllegalStateException("Unexpected value: " + c);
             }
         }
         /*
@@ -307,12 +331,19 @@ public class PatternMatching {
         // As of Java 21
         static void exhaustiveSwitchWithBetterEnumSupport(CardClassification c) {
             switch (c) {
-                case Suit1.CLUBS -> { System.out.println("It's clubs"); }
-                case Suit1.DIAMONDS -> { System.out.println("It's diamonds"); }
-                case Suit1.HEARTS -> { System.out.println("It's hearts"); }
-                case Suit1.SPADES -> { System.out.println("It's spades"); }
-                case Tarot t -> { System.out.println("It's a tarot"); }
+                case Standard.SPADE   -> println("Spades");
+                case Standard.HEART   -> println("Hearts");
+                case Standard.DIAMOND -> println("Diamonds");
+                case Standard.CLUB    -> println("Clubs");
+                case Tarot.SPADE      -> println("Spades or Piques");
+                case Tarot.HEART      -> println("Hearts or C\u0153ur");
+                case Tarot.DIAMOND    -> println("Diamonds or Carreaux");
+                case Tarot.CLUB       -> println("Clubs or Trefles");
+                case Tarot.TRUMP      -> println("Trumps or Atouts");
+                case Tarot.EXCUSE     -> println("The Fool or L'Excuse");
+                case Weird weird      -> { println("It's Weird"); }
             }
+            // Therefore, you can use an enum constant when the type of the selector expression is not an enum type provided that the enum constant's name is qualified and its value is assignment-compatible with the type of the selector expression.
         }
         /*
      }
@@ -336,17 +367,17 @@ public class PatternMatching {
         static void goodEnumSwitch1(Currency c) {
             switch (c) {
                 // Qualified name of enum constant as a label
-                case Coin.HEADS -> { System.out.println("Heads"); }
+                case Coin.HEADS -> { println("Heads"); }
                 // Error - TAILS must be qualified
-                //case TAILS -> { System.out.println("Tails");}
-                default -> { System.out.println("Some currency"); }
+                //case TAILS -> { println("Tails");}
+                default -> { println("Some currency"); }
             }
         }
         static void goodEnumSwitch2(Coin c) {
             switch (c) {
-                case HEADS -> { System.out.println("Heads"); }
+                case HEADS -> { println("Heads"); }
                 // Unnecessary qualification but allowed
-                case Coin.TAILS -> { System.out.println("Tails"); }
+                case Coin.TAILS -> { println("Tails"); }
             }
         }
       /*
@@ -401,16 +432,14 @@ public class PatternMatching {
        Supporting patterns in switch means that we can relax the restrictions on the type of the selector expression. Currently the type of the selector expression of a normal switch must be either an integral primitive type (excluding long), the corresponding boxed form (i.e., Character, Byte, Short, or Integer), String, or an enum type. We extend this and require that the type of the selector expression be either an integral primitive type (excluding long) or any reference type.
        */
         // As of Java 21
-        record Point(int i, int j) {}
-        enum Color { RED, GREEN, BLUE; }
         static void typeTester(Object obj) {
             switch (obj) {
-                case null     -> System.out.println("null");
-                case String s -> System.out.println("String");
-                case Color c  -> System.out.println("Color: " + c.toString());
-                case Point p  -> System.out.println("Record class: " + p.toString());
-                case int[] ia -> System.out.println("Array of ints of length" + ia.length);
-                default       -> System.out.println("Something else");
+                case null     -> println("null");
+                case String s -> println("String");
+                case Color c  -> println("Color: " + c.toString());
+                case Point p  -> println("Record class: " + p.toString());
+                case int[] ia -> println("Array of ints of length" + ia.length);
+                default       -> println("Something else");
             }
         }
        /*
@@ -421,11 +450,11 @@ public class PatternMatching {
         // As of Java 21
         static void first(Object obj) {
             switch (obj) {
-                //case CharSequence cs -> System.out.println("A sequence of length " + cs.length());
+                //case CharSequence cs -> println("A sequence of length " + cs.length());
                 // Error - pattern is dominated by previous pattern. The String case label is unreachable in the sense that there is no value of the selector expression that would cause it to be chosen (String is a subtype of CharSequence).
-                //case String s -> System.out.println("A string: " + s);
-                case String s -> System.out.println("A string: " + s);
-                case CharSequence cs -> System.out.println("A sequence of length " + cs.length());
+                //case String s -> println("A string: " + s);
+                case String s -> println("A string: " + s);
+                case CharSequence cs -> println("A sequence of length " + cs.length());
                 default -> { break; }
             }
         }
@@ -438,6 +467,7 @@ public class PatternMatching {
             case Integer j when j > 0 -> ...    // Positive integer cases
             case Integer j -> ...               // All the remaining integers
         }
+       Guarded patterns aren't checked for dominance because they're generally undecidable. Consequently, you should order your case labels so that constant labels appear first, followed by guarded pattern labels, and then followed by nonguarded pattern labels.
        Supertype dominates subtype, for example, String is a subtype of CharSequence.
        An unguarded pattern case label dominates a guarded pattern case label that has the same pattern.
        A guarded pattern case label dominates another pattern case label (guarded or unguarded) only when both the former's pattern dominates the latter's pattern and when its guard is a constant expression of value true. For example, the guarded pattern case label case String s when true dominates the pattern case label case String s. We do not analyze the guarding expression any further in order to determine more precisely which values match the pattern label — a problem which is undecidable in general.
@@ -447,11 +477,11 @@ public class PatternMatching {
         // As of Java 21
         static void matchAll(String s) {
             switch(s) {
-                case String t: System.out.println(t); break;
+                case String t: println(t); break;
                 // Duplicate unconditional pattern.
-                //case Object o: System.out.println("An Object"); break;
+                //case Object o: println("An Object"); break;
                 // 'switch' has both an unconditional pattern and a default label.
-                //default: System.out.println("Something else");  // Error - dominated!
+                //default: println("Something else");  // Error - dominated!
             }
         }
        /*
@@ -511,8 +541,8 @@ public class PatternMatching {
      */
         // As of Java 21
         static void testFlowScoping(Object obj) {
-            if ((obj instanceof String s) && s.length() > 3) { System.out.println(s + "in scope"); }
-            else { System.out.println("s not in scope"); }
+            if ((obj instanceof String s) && s.length() > 3) { println(s + "in scope"); }
+            else { println("s not in scope"); }
         }
       /*
       We extend this flow-sensitive notion of scope for pattern variable declarations to encompass pattern declarations occurring in case labels with three new rules:
@@ -521,7 +551,7 @@ public class PatternMatching {
        // As of Java 21
         static void testScope1(Object obj) {
             switch (obj) {
-                case Character c when c.charValue() == 7: System.out.println("Ding!"); break;
+                case Character c when c.charValue() == 7: println("Ding!"); break;
                 default: break;
             }
         }
@@ -532,8 +562,8 @@ public class PatternMatching {
         static void testScope2(Object obj) {
             switch (obj) {
                 case Character c -> {
-                    if (c.charValue() == 7) { System.out.println("Ding!"); }
-                    System.out.println("Character");
+                    if (c.charValue() == 7) { println("Ding!"); }
+                    println("Character");
                 }
                 case Integer i ->
                     throw new IllegalStateException("Invalid Integer argument: " + i.intValue());
@@ -550,12 +580,12 @@ public class PatternMatching {
                 case Character c:
                     if (c.charValue() == 7) { System.out.print("Ding "); }
                     if (c.charValue() == 9) { System.out.print("Tab "); }
-                    System.out.println(c +  "in scope");
+                    println(c +  "in scope");
                     //break;
                     // Without {break} this code allows falling through and switch label consisting of multiple pattern labels.
-                // case Integer i: System.out.println("An integer " + i);
+                // case Integer i: println("An integer " + i);
                 // The possibility of falling through a case label that declares a pattern variable is forbidden. If this were allowed and the value of obj were a Character then execution of the switch block could fall through the second statement group, after case Integer i:, where the pattern variable i would not have been initialized. Allowing execution to fall through a case label that declares a pattern variable is therefore a compile-time error.
-                default: System.out.println("c not in scope");
+                default: println("c not in scope");
             }
         }
         // As of Java 21
@@ -564,11 +594,11 @@ public class PatternMatching {
                 case Character c -> {
                     if (c.charValue() == 7) { System.out.print("Ding "); }
                     if (c.charValue() == 9) { System.out.print("Tab "); }
-                    System.out.println(c + "in scope");
+                    println(c + "in scope");
                 }
                 // Arrow operator -> to execute code for that case. This syntax eliminates case-fall-through, so no break needed.
-                case Integer i -> System.out.println("An integer " + i);
-                default -> System.out.println("c not in scope");
+                case Integer i -> println("An integer " + i);
+                default -> println("c not in scope");
             }
         }
       /*
@@ -581,9 +611,9 @@ public class PatternMatching {
         // As of Java 21
         static void nullMatch1(Object obj) {
             switch (obj) {
-                case String s  -> System.out.println("String: " + s);
-                case Integer i -> System.out.println("Integer");
-                default        -> System.out.println("default");
+                case String s  -> println("String: " + s);
+                case Integer i -> println("Integer");
+                default        -> println("default");
             }
         }
         //is equivalent to:
@@ -591,10 +621,23 @@ public class PatternMatching {
         static void nullMatch2(Object obj) {
             switch (obj) {
                 case null      -> throw new NullPointerException();
-                case String s  -> System.out.println("String: " + s);
-                case Integer i -> System.out.println("Integer");
-                default        -> System.out.println("default");
-                //case null, default -> System.out.println("The rest (including null)");
+                // Error: "Invalid case label combination: 'null' can only be used as a single case label or paired only with 'default'".
+                //case null, String s -> System.out.println("String: " + s);
+                case String s  -> println("String: " + s);
+                case Integer i -> println("Integer");
+                default        -> println("default");
+            }
+            switch (obj) {
+                case String s  -> println("String: " + s);
+                case Integer i -> println("Integer");
+                case null, default -> println("The rest (including null)");
+            }
+        }
+        // If a selector expression evaluates to null and the switch block does not have null case label, then a NullPointerException is thrown as normal.
+        static void nullMatch3(Object obj) {
+            switch (obj) {
+                case Object s -> System.out.println("This doesn't match null");
+                // No null label. NullPointerException is thrown if obj is null.
             }
         }
       /*
@@ -621,9 +664,9 @@ public class PatternMatching {
      */
     public static class PatternMatchingForRecords {
     /*
-    https://openjdk.org/jeps/405 Preview
-    https://openjdk.org/jeps/432 Second Preview
-    https://openjdk.org/jeps/440
+    https://openjdk.org/jeps/440 Record Patterns
+    https://openjdk.org/jeps/432 Record Patterns (Second Preview)
+    https://openjdk.org/jeps/405 Record Patterns (Preview)
     Used to deconstruct record values.
     Record patterns and type patterns can be nested to enable a powerful, declarative, and composable form of data navigation and processing.
     This feature has co-evolved with Pattern Matching for switch, with which it has considerable interaction.
@@ -644,14 +687,14 @@ public class PatternMatching {
             if (obj instanceof Point p) {
                 int x = p.x();
                 int y = p.y();
-                System.out.println(x+y);
+                println(x+y);
             }
         }
         // As of Java 21
         static void printSum21(Object obj) {
             if (obj instanceof Point(int x, int y)) {
                 // Point(int x, int y) is a record pattern. It lifts the declaration of local variables for extracted components into the pattern itself, and initializes those variables by invoking the accessor methods when a value is matched against the pattern. In effect, a record pattern disaggregates an instance of a record into its components.
-                System.out.println(x+y);
+                println(x+y);
             }
         }
       /*
@@ -668,14 +711,14 @@ public class PatternMatching {
         // As of Java 21
         static void printUpperLeftColoredPoint(Rectangle r) {
             if (r instanceof Rectangle(ColoredPoint ul, ColoredPoint lr)) {
-                System.out.println(ul.c());
+                println(ul.c());
             }
         }
         // But the ColoredPoint value ul is itself a record value, which we might want to decompose further. Record patterns therefore support nesting, which allows the record component to be further matched against, and decomposed by, a nested pattern. We can nest another pattern inside the record pattern and decompose both the outer and inner records at once:
         // As of Java 21
         static void printColorOfUpperLeftPoint(Rectangle r) {
             if (r instanceof Rectangle(ColoredPoint(Point p, Color c), ColoredPoint lr)) {
-                System.out.println(c);
+                println(c);
             }
         }
         // Nested patterns allow us, further, to take apart an aggregate with code that is as clear and concise as the code that puts it together. If we were creating a rectangle, for example, we would likely nest the constructors in a single expression:
@@ -687,7 +730,7 @@ public class PatternMatching {
         // As of Java 21
         static void printXCoordOfUpperLeftPointWithPatterns(Rectangle r) {
             if (r instanceof Rectangle(ColoredPoint(Point(var x, var y), var c), var lr)) {
-                System.out.println("Upper-left corner: " + x);
+                println("Upper-left corner: " + x);
             }
         }
 
@@ -698,9 +741,9 @@ public class PatternMatching {
         void testFail() {
             // Here the record pattern Pair(String s, String t) contains two nested type patterns, namely String s and String t. A value matches the pattern Pair(String s, String t) if it is a Pair and, recursively, its component values match the type patterns String s and String t. In our example code above these recursive pattern matches fail since neither of the record component values are strings, and thus the else block is executed.
             if (p instanceof Pair(String s, String t)) {
-                System.out.println(s + ", " + t);
+                println(s + ", " + t);
             } else {
-                System.out.println("Not a pair of strings");
+                println("Not a pair of strings");
             }
         }
      /*
@@ -743,7 +786,7 @@ public class PatternMatching {
         static void test1(Box<Box<String>> bbs) {
             // Here the type argument for the nested pattern Box(var s) is inferred to be String, so the pattern itself is inferred to be Box<String>(var s).
             if (bbs instanceof Box<Box<String>>(Box(var s))) {
-                System.out.println("String " + s);
+                println("String " + s);
             }
         }
      /*
@@ -753,7 +796,7 @@ public class PatternMatching {
         static void test2(Box<Box<String>> bbs) {
             // Here the compiler will infer that the entire instanceof pattern is Box<Box<String>>(Box<String>(var s)).
             if (bbs instanceof Box(Box(var s))) {
-                System.out.println("String " + s);
+                println("String " + s);
             }
         }
      /*
