@@ -56,17 +56,19 @@ public class StreamsLambdasCollections {
             catch (UnsupportedOperationException e) {
                 System.out.println("As expected, we can't add or set items to a immutable list created with List.of().");
             }
+            // Immutable collection by coping another one.
+            List<String> friends5_2 = List.copyOf(friends1_1);
             // Nothing is stopping you from having elements that are mutable themselves. If you need a mutable list, you can still instantiate one manually. Finally, note that to prevent unexpected bugs and enable a more-compact internal representation, null elements are disallowed.
             // Make immutable list mutable
-            List<String> friends5_2 = new ArrayList<>(friends5_1);
-            friends5_2.add("Richard");
-            friends5_2.sort(Comparator.comparing(Object::toString));
-            System.out.println("My sorted list: " + String.join(",", friends5_2));
+            List<String> friends5_3 = new ArrayList<>(friends5_1);
+            friends5_3.add("Richard");
+            friends5_3.sort(Comparator.comparing(Object::toString));
+            System.out.println("My sorted list: " + String.join(",", friends5_3));
 
             // Creating a Set with Set.of().
-            Set<String> friends6 = Set.of("Raphael", "Olivia", "Thibaut");
+            Set<String> friends7 = Set.of("Raphael", "Olivia", "Thibaut");
             try {
-                friends6 = Set.of("Raphael", "Olivia", "Olivia");
+                friends7 = Set.of("Raphael", "Olivia", "Olivia");
                 System.out.println("We shouldn't get here...");
             }
             catch (IllegalArgumentException e) {

@@ -1,5 +1,7 @@
 package org.example.java_learning;
 
+import java.util.Comparator;
+
 public class Misc {
 /*
 
@@ -136,4 +138,30 @@ Expressions and Operators {
  }
 
  */
+
+
+ /**
+  * Interesting syntax.
+  */
+    public final class Wrapper<T> {
+        final T theObject;
+        public Wrapper(T t) { theObject = t; }
+        public <U extends T> Wrapper(Wrapper<U> w) { theObject = w.theObject; }
+        public T getWrapper() { return theObject; }
+        final class WrapperComparator<W extends Wrapper<? extends Comparable<T>>> implements Comparator<W> {
+            public int compare(W lhs, W rhs) { return lhs.theObject.compareTo((T)(rhs.theObject)); }
+        }
+        public <V extends Wrapper<? extends Comparable<T>>> Comparator<V> comparator() {
+            // This one.
+            return this.new WrapperComparator<V>();
+        }
+    }
+    private interface Copyable<T> { T copy(); }
+    <T extends Copyable<T>> void nonStaticMethod(T t) {
+        class Task implements Runnable {
+            public void run() { }
+        }
+        // This one.
+        (new Task()).run();
+    }
 }

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Gatherer;
 
 import static java.util.stream.Collectors.toList;
 import static org.example.java_learning.Util.println;
@@ -408,6 +410,26 @@ Type Conversions. Type Casting {
             duck.quack();
             // Prints:
             //Quack!
+        }
+    }
+
+    /**
+     * TO-DO:
+     *  1. Null Annotations.
+     *  2. Objects.Nulls. Objects.requireNonNull
+     */
+    public static class Nulls {
+
+        OptionalMain nullsWithOptional = new OptionalMain();
+
+        // (Void)null.
+        public final static <T,R> Gatherer<T, ?, R> mapGatherer(Function<? super T, ? extends R> mapper) {
+            return Gatherer.of(
+                () -> (Void)null,
+                (nothing, element, downstream) -> downstream.push(mapper.apply(element)),
+                (l,r) -> l,
+                (nothing, downstream) -> {}
+            );
         }
     }
 

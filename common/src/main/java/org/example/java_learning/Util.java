@@ -24,6 +24,10 @@ public class Util {
         System.out.println(obj);
     }
 
+    public static void print(Object obj) {
+        System.out.print(obj);
+    }
+
     public static void dumbLoopForMillis(long durationInMillis) {
         long end = currentTimeMillis() + durationInMillis;
         while (currentTimeMillis() < end) {}

@@ -2,15 +2,10 @@ package org.example.java_learning;
 
 
 import static java.util.stream.Collectors.toSet;
+import static org.example.java_learning.Util.println;
 
 import java.util.*;
 import java.util.stream.Stream;
-
-/*
-TO-DO:
- 1. Null Annotations.
- 2. Objects.Nulls.
-*/
 
 public class OptionalMain {
 /*
@@ -216,13 +211,13 @@ ________________________________________________________________________________
         // Rejecting certain values with filter.
         Insurance insurance = new Insurance("MayBeCambridgeInsurance");
         void printIsCambridgeInsurance(Insurance insurance) {
-            if (insurance != null && "CambridgeInsurance".equals(insurance.getName())) { System.out.println("ok"); }
+            if (insurance != null && "CambridgeInsurance".equals(insurance.getName())) { println("ok"); }
         }
         // or
         void printIsCambridgeInsurance(Optional<Insurance> insurance) {
             insurance
                 .filter(i -> "CambridgeInsurance".equals(i.getName()))
-                .ifPresent(x -> System.out.println("ok"));
+                .ifPresent(x -> println("ok"));
         }
         // Another example.
         public String getCarInsuranceNameForAge(Optional<Person> person, int minAge) {
@@ -308,10 +303,10 @@ ________________________________________________________________________________
             props.setProperty("a", "5");
             props.setProperty("b", "true");
             props.setProperty("c", "-3");
-            System.out.println(readDurationWithOptional(props, "a"));
-            System.out.println(readDurationWithOptional(props, "b"));
-            System.out.println(readDurationWithOptional(props, "c"));
-            System.out.println(readDurationWithOptional(props, "d"));
+            println(readDurationWithOptional(props, "a"));
+            println(readDurationWithOptional(props, "b"));
+            println(readDurationWithOptional(props, "c"));
+            println(readDurationWithOptional(props, "d"));
         }
     }
 
@@ -330,13 +325,13 @@ ________________________________________________________________________________
 
     public class WorkingWithNulls3 {
         public static void workingWithNulls3() {
-            System.out.println(max(Optional.of(3), Optional.of(5)));
-            System.out.println(max(Optional.empty(), Optional.of(5)));
+            println(max(Optional.of(3), Optional.of(5)));
+            println(max(Optional.empty(), Optional.of(5)));
 
             Optional<Integer> opt1 = Optional.of(5);
             Optional<Integer> opt2 = opt1.or(() -> Optional.of(4));
 
-            System.out.println(Optional.of(5).or(() -> Optional.of(4)));
+            println(Optional.of(5).or(() -> Optional.of(4)));
         }
         public static Optional<Integer> max(Optional<Integer> i, Optional<Integer> j) {
             return i.flatMap(a -> j.map(b -> Math.max(a, b)));

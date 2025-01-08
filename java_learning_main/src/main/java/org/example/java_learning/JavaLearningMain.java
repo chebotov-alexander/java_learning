@@ -54,6 +54,7 @@ Block {
  A block is a sequence of statements, local variable declaration statements, and local class and interface declarations within braces.
 }
 Expressions {
+
 }
 Constant Expressions {
  https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.29
@@ -88,6 +89,8 @@ Constant Expressions {
     Tagging interfaces is interfaces without methods.
 
 A pattern is TOTAL on a type if it matches all possible values of that type—including null (for reference types).
+
+
 
 UnannType {
  UnannType is unannotated type.

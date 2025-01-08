@@ -4,12 +4,11 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.*;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
+import java.util.stream.*;
 
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingInt;
@@ -18,6 +17,7 @@ import static java.util.stream.Collector.Characteristics.IDENTITY_FINISH;
 import static java.util.stream.Collectors.*;
 import static org.example.java_learning.Dish.menu;
 import static org.example.java_learning.Dish.dishTags;
+import static org.example.java_learning.Util.println;
 
 public class StreamMethods {
     public static class StreamFiltering {
@@ -1140,4 +1140,610 @@ public class StreamMethods {
             );
         }
     }
+
+    public class StreamGatherers {
+    /*
+    https://openjdk.org/jeps/461 Stream Gatherers (Preview)
+
+    https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html Stream API
+    https://cr.openjdk.org/~vklang/gatherers/api/java.base/java/util/stream/Gatherer.html Stream Gatherers API
+
+    Enhance the Stream API to support custom intermediate operations. This will allow stream pipelines to transform data in ways that are not easily achievable with the existing built-in intermediate operations.
+
+    Gatherers vs. collectors.
+    The design of the {Gatherer} interface is heavily influenced by the design of {Collector}. The main differences are:
+     - {Gatherer} uses an {Integrator} instead of a {BiConsumer} for per-element processing because it needs an extra input parameter for the {Downstream} object, and because it needs to return a boolean to indicate whether processing should continue.
+     - {Gatherer} uses a {BiConsumer} for its finisher instead of a {Function} because it needs an extra input parameter for its {Downstream} object, and because it cannot return a result and thus is void.
+
+    Goals {
+     - Make stream pipelines more flexible and expressive.
+     - Insofar as possible, allow custom intermediate operations to manipulate streams of infinite size.
+    }
+
+    Motivation {
+     The Stream API provides a reasonably rich, albeit fixed, set of intermediate and terminal operations: mapping, filtering, reduction, sorting, and so forth. It also includes an extensible terminal operation, Stream::collect, which enables the output of a pipeline to be summarized in a variety of ways.
+     The use of streams in the Java ecosystem is by now pervasive, and ideal for many tasks, but the fixed set of intermediate operations means that some complex tasks cannot easily be expressed as stream pipelines. Either a required intermediate operation does not exist, or it exists but does not directly support the task.
+     As an example, suppose the task is to take a stream of strings and make it distinct, but with distinctness based on string length rather than content. That is, at most one string of length 1 should be emitted, and at most one string of length 2, and at most one string of length 3, and so forth. Ideally, the code would look something like this:
+        var result = Stream.of("foo", "bar", "baz", "quux")
+            .distinctBy(String::length)  // Hypothetical
+            .toList();                   // result ==> [foo, quux]
+     Unfortunately, distinctBy is not a built-in intermediate operation. The closest built-in operation, distinct, tracks the elements it has already seen by using object equality to compare them. That is, distinct is stateful but in this case uses the wrong state: We want it to track elements based on equality of string length, not string content. We could work around this limitation by declaring a class that defines object equality in terms of string length, wrapping each string in an instance of that class and applying distinct to those instances. This expression of the task is not intuitive, however, and makes for code that is difficult to maintain:
+     */
+        record DistinctByLength(String str) {
+            @Override public boolean equals(Object obj) {
+                return obj instanceof DistinctByLength(String other)
+                    && str.length() == other.length();
+            }
+            @Override public int hashCode() {
+                return str == null ? 0 : Integer.hashCode(str.length());
+            }
+        }
+        public static List<String> testDistinctByLength() {
+            return Stream.of("foo", "bar", "baz", "quux")
+                .map(DistinctByLength::new)
+                .distinct()
+                .map(DistinctByLength::str)
+                .toList(); // result ==> [foo, quux]
+        }
+     /*
+     As another example, suppose the task is to group elements into fixed-size groups of three, but retain only the first two groups: [0, 1, 2, 3, 4, 5, 6, ...] should produce [[0, 1, 2], [3, 4, 5]]. Ideally, the code would look like this:
+        var result = Stream.iterate(0, i -> i + 1)
+            .windowFixed(3) // Hypothetical
+            .limit(2)
+            .toList();      // result ==> [[0, 1, 2], [3, 4, 5]]
+     Unfortunately, no built-in intermediate operation supports this task. The best option is to place the fixed-window grouping logic in the terminal operation, by invoking collect with a custom Collector. However, we must precede the collect operation with a fixed-size limit operation, since the collector cannot signal to collect that it is finished while new elements are appearing — which happens forever with an infinite stream. Also, the task is inherently about ordered data, so it is not feasible to have the collector perform grouping in parallel, and it must signal this fact by throwing an exception if its combiner is invoked. The resulting code is difficult to understand:
+     */
+        public static ArrayList<ArrayList<Integer>> testGetFirstFixedSizedGroups() {
+            return Stream.iterate(0, i -> i + 1)
+                .limit(3 * 2)
+                .collect(Collector.of(
+                    () -> new ArrayList<ArrayList<Integer>>(),
+                    (groups, element) -> {
+                        if (groups.isEmpty() || groups.getLast().size() == 3) {
+                            var current = new ArrayList<Integer>();
+                            current.add(element);
+                            groups.addLast(current);
+                        } else {
+                            groups.getLast().add(element);
+                        }
+                    },
+                    (left, right) -> {
+                        throw new UnsupportedOperationException("Cannot be parallelized");
+                    }
+                )); // result ==> [[0, 1, 2], [3, 4, 5]]
+        }
+     /*
+    }
+
+    Description {
+     Stream::gather(Gatherer) is a new intermediate stream operation that processes the elements of a stream by applying a user-defined entity called a gatherer. With the gather operation we can build efficient, parallel-ready streams that implement almost any intermediate operation. Stream::gather(Gatherer) is to intermediate operations what Stream::collect(Collector) is to terminal operations.
+     Gatherers can transform elements in a one-to-one, one-to-many, many-to-one, or many-to-many fashion. They can track previously seen elements in order to influence the transformation of later elements, they can short-circuit in order to transform infinite streams to finite ones, and they can enable parallel execution. For example, a gatherer can transform one input element to one output element until some condition becomes true, at which time it starts to transform one input element to two output elements.
+     A gatherer is defined by four functions that work together:
+      - The optional "initializer" function provides an object that maintains private state while processing stream elements. For example, a gatherer can store the current element so that, the next time it is applied, it can compare the new element with the now-previous element and, say, emit only the larger of the two. In effect, such a gatherer transforms two input elements into one output element.
+      - The "integrator" function integrates a new element from the input stream, possibly inspecting the private state object and possibly emitting elements to the output stream. It can also terminate processing before reaching the end of the input stream; for example, a gatherer searching for the largest of a stream of integers can terminate if it detects Integer.MAX_VALUE.
+      - The optional "combiner" function can be used to evaluate the gatherer in parallel when the input stream is marked as parallel. If a gatherer is not parallel-capable then it can still be part of a parallel stream pipeline, but it is evaluated sequentially. This is useful for cases where an operation is inherently ordered in nature and thus cannot be parallelized.
+      - The optional "finisher" function is invoked when there are no more input elements to consume. This function can inspect the private state object and, possibly, emit additional output elements. For example, a gatherer searching for a specific element amongst its input elements can report failure, say by throwing an exception, when its finisher is invoked.
+     When invoked, Stream::gather performs the equivalent of the following steps:
+      - Create a "Downstream" object which, when given an element of the gatherer’s output type, passes it to the next stage in the pipeline.
+      - Obtain the gatherer’s private state object by invoking the get() method of its "initializer".
+      - Obtain the gatherer’s "integrator" by invoking its integrator() method.
+      - While there are more input elements, invoke the integrator's integrate(...) method, passing it the state object, the next element, and the downstream object. Terminate if that method returns false.
+      - Obtain the gatherer’s "finisher" and invoke it with the state and downstream objects.
+     Every existing intermediate operation declared in the Stream interface can be implemented by invoking gather with a gatherer that implements that operation. For example, given a stream of T-typed elements, Stream::map turns each T element into a U element by applying a function and then passes the U element downstream; this is simply a stateless one-to-one gatherer. As another example, Stream::filter takes a predicate that determines whether an input element should be passed downstream; this is simply a stateless one-to-many gatherer. In fact every stream pipeline is, conceptually, equivalent to
+        source.gather(...).gather(...).gather(...).collect(...)\
+
+     Built-in gatherers.
+      1. {fold} is a stateful many-to-one gatherer which constructs an aggregate incrementally and emits that aggregate when no more input elements exist. An operation which performs an ordered, reduction-like, transformation for scenarios where no combiner-function can be implemented, or for reductions which are intrinsically order-dependent. This operation always emits a single resulting element.
+      https://cr.openjdk.org/~vklang/gatherers/api/java.base/java/util/stream/Gatherers.html#fold(java.util.function.Supplier,java.util.function.BiFunction)
+     */
+        Optional<String> numberString = // will contain: Optional[123456789].
+             Stream.of(1,2,3,4,5,6,7,8,9)
+                 .gather(Gatherers.fold(() -> "", (string, number) -> string + number))
+                 .findFirst();
+     /*
+      2. {mapConcurrent} is a stateful one-to-one gatherer which invokes a supplied function for each input element concurrently, up to a supplied limit. An operation which executes operations concurrently with a fixed window of max concurrency, using VirtualThreads. This operation preserves the ordering of the stream. In progress tasks will be attempted to be cancelled, on a best-effort basis, in situations where the downstream no longer wants to receive any more elements.
+      3. {scan} is a stateful one-to-one gatherer which applies a supplied function to the current state and the current element to produce the next element, which it passes downstream. Performs a prefix scan -- an incremental accumulation, using the provided functions.
+      4. {windowFixed} is a stateful many-to-many gatherer which groups input elements into lists of a supplied size, emitting the windows downstream when they are full. Gathers elements into fixed-size windows. The last window may contain fewer elements than the supplied window size.
+      */
+        List<List<Integer>> windowFixed = // will contain: [[1, 2, 3], [4, 5, 6], [7, 8]].
+             Stream.of(1,2,3,4,5,6,7,8).gather(Gatherers.windowFixed(3)).toList();
+      /*
+      5. {windowSliding} is a stateful many-to-many gatherer which groups input elements into lists of a supplied size. After the first window, each subsequent window is created from a copy of its predecessor by dropping the first element and appending the next element from the input stream. Gathers elements into sliding windows, sliding out the most previous element and sliding in the next element for each subsequent window. If the stream is empty then no window will be produced. If the size of the stream is smaller than the window size then only one window will be emitted, containing all elements.
+      */
+      List<List<Integer>> windowSliding = // will contain: [[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8]].
+          Stream.of(1,2,3,4,5,6,7,8).gather(Gatherers.windowSliding(2)).toList();
+      /*
+
+     Parallel evaluation.
+     Parallel evaluation of a gatherer is split into two distinct modes. When a combiner is not provided, the stream library can still extract parallelism by executing upstream and downstream operations in parallel, analogous to a short-circuitable parallel().forEachOrdered() operation. When a combiner is provided, parallel evaluation is analogous to a short-circuitable parallel().reduce() operation.
+     When executed in parallel, multiple intermediate results may be instantiated, populated, and merged so as to maintain isolation of mutable data structures. Therefore, even when executed in parallel with non-thread-safe data structures (such as ArrayList), no additional synchronization is needed for a parallel reduction (from java.util.stream.Stream#gather).
+
+     Composing gatherers.
+     https://cr.openjdk.org/~vklang/gatherers/api/java.base/java/util/stream/Gatherer.html#andThen(java.util.stream.Gatherer)
+     Gatherers support composition via the {andThen(Gatherer)} method, which joins two gatherers where the first produces elements that the second can consume. This enables the creation of sophisticated gatherers by composing simpler ones, just like "function composition". Semantically,
+        source.gather(a).gather(b).gather(c).collect(...)
+        Stream<Long> stream = Stream.of(1).gather(someGatherer).gather(someOtherGatherer);
+      is equivalent to
+        source.gather(a.andThen(b).andThen(c)).collect(...)
+        Gatherer<Integer,?,Long> gatherer = someGatherer.andThen(someOtherGatherer);
+      where
+        Gatherer<Integer,?,String> someGatherer = …;
+        Gatherer<String,?,Long> someOtherGatherer = …;
+     This makes it possible to both de-couple operations from their use-sites, as well as create more sophisticated {Gatherers} from simple ones.
+     But that’s not all—by introducing a {default Collector collect(Collector)} - method it is also possible to compose a {Gatherer} with a {Collector}, and the result is another {Collector}:
+        Collector<Long,?,List<Long>> someGatherer.andThen(someOtherGatherer).collect(Collectors.toList());
+     All of this together, it is now possible to build Stream-processing: "source-to-destination" using Stream.gather(…).gather(…).gather(…); "intermediaries-first" using gatherer.andThen(…).andThen(…); and, "destination-to-source" using gatherer.collect(otherGatherer.collect(…)).
+
+     Examples {
+    */
+      // Examples 1. Sometimes the lack of an appropriate intermediate operation forces us to evaluate a stream into a list and run our analysis logic in a loop. Suppose, for example, that we have a stream of temporally ordered temperature readings.
+        public class SuspiciousReading {
+            record Reading(Instant obtainedAt, int kelvins) {
+                Reading(String time, int kelvins) { this(Instant.parse(time), kelvins); }
+                static Stream<Reading> loadRecentReadings() {
+                    // In reality these could be read from a file, a database, a service, or otherwise.
+                    return Stream.of(
+                        new Reading("2023-09-21T10:15:30.00Z", 310),
+                        new Reading("2023-09-21T10:15:31.00Z", 312),
+                        new Reading("2023-09-21T10:15:32.00Z", 350),
+                        new Reading("2023-09-21T10:15:33.00Z", 310)
+                    );
+                }
+            }
+            // Suppose, further, that we want to detect suspicious changes in this stream, defined as temperature changes of more than 30° Kelvin across two consecutive readings within a five-second window of time:
+            static boolean isSuspicious(Reading previous, Reading next) {
+                return next.obtainedAt().isBefore(previous.obtainedAt().plusSeconds(5))
+                    && (next.kelvins() - previous.kelvins() > 30
+                    || next.kelvins() - previous.kelvins() < -30);
+            }
+            // This requires a sequential scan of the input stream, so we must eschew declarative stream processing and implement our analysis imperatively:
+            static List<List<Reading>> findSuspicious(Stream<Reading> source) {
+                var suspicious = new ArrayList<List<Reading>>();
+                Reading previous = null;
+                boolean hasPrevious = false;
+                for (Reading next : source.toList()) {
+                    if (!hasPrevious) {
+                        hasPrevious = true;
+                        previous = next;
+                    } else {
+                        if (isSuspicious(previous, next)) suspicious.add(List.of(previous, next));
+                        previous = next;
+                    }
+                }
+                return suspicious;
+            }
+            // With a gatherer, however, we can express this more succinctly:
+            static List<List<Reading>> findSuspiciousWithGatherer(Stream<Reading> source) {
+                return source.gather(Gatherers.windowSliding(2))
+                    .filter(
+                        window -> (
+                            window.size() == 2 && isSuspicious(window.get(0), window.get(1))
+                        )
+                    )
+                    .toList();
+            }
+            public static void testFindSuspicious() {
+                println(findSuspicious(Reading.loadRecentReadings()));
+                println(findSuspiciousWithGatherer(Reading.loadRecentReadings()));
+                // Prints:
+                //[[Reading[obtainedAt=2023-09-21T10:15:31Z, kelvins=312],
+                //Reading[obtainedAt=2023-09-21T10:15:32Z, kelvins=350]],
+                //[Reading[obtainedAt=2023-09-21T10:15:32Z, kelvins=350],
+                //Reading[obtainedAt=2023-09-21T10:15:33Z, kelvins=310]]]
+            }
+        }
+      // Examples 2. Custom gatherer. The windowFixed gatherer declared in the Gatherers class could be written as a direct implementation of the Gatherer interface.
+        record WindowFixed<TR>(int windowSize) implements Gatherer<TR, ArrayList<TR>, List<TR>> {
+            public WindowFixed {
+                // Validate input.
+                if (windowSize < 1) throw new IllegalArgumentException("window size must be positive");
+            }
+            @Override
+            public Supplier<ArrayList<TR>> initializer() {
+                // Create an ArrayList to hold the current open window.
+                return () -> new ArrayList<>(windowSize);
+            }
+            @Override
+            public Integrator<ArrayList<TR>, TR, List<TR>> integrator() {
+                // The integrator is invoked for each element consumed.
+                return Gatherer.Integrator.ofGreedy((window, element, downstream) -> {
+                    // Add the element to the current open window.
+                    window.add(element);
+                    // Until we reach our desired window size, return true to signal that more elements are desired.
+                    if (window.size() < windowSize) return true;
+                    // When the window is full, close it by creating a copy.
+                    var result = new ArrayList<TR>(window);
+                    // Clear the window so the next can be started.
+                    window.clear();
+                    // Send the closed window downstream.
+                    return downstream.push(result);
+                });
+            }
+            // The combiner is omitted since this operation is intrinsically sequential, and thus cannot be parallelized.
+            @Override
+            public BiConsumer<ArrayList<TR>, Downstream<? super List<TR>>> finisher() {
+                // The finisher runs when there are no more elements to pass from the upstream.
+                return (window, downstream) -> {
+                    // If the downstream still accepts more elements and the current open window is non-empty, then send a copy of it downstream.
+                    if (!downstream.isRejecting() && !window.isEmpty()) {
+                        downstream.push(new ArrayList<TR>(window));
+                        window.clear();
+                    }
+                };
+            }
+        }
+        public static void testWindowFixed() {
+            println(Stream.of(1,2,3,4,5,6,7,8,9).gather(new WindowFixed(3)).toList());
+            // Prints:
+            //[[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        }
+      // Example 3. An ad-hoc gatherer. The windowFixed gatherer could, alternatively, be written in an ad-hoc manner via the Gatherer.ofSequential(...) factory method.
+        /**
+         * Gathers elements into fixed-size groups. The last group may contain fewer
+         * elements.
+         * @param windowSize the maximum size of the groups
+         * @return a new gatherer which groups elements into fixed-size groups
+         * @param <TR> the type of elements the returned gatherer consumes and produces
+         */
+        static <TR> Gatherer<TR, ?, List<TR>> getFixedWindowAdhoc(int windowSize) {
+            // Validate input.
+            if (windowSize < 1) throw new IllegalArgumentException("window size must be non-zero");
+            // This gatherer is inherently order-dependent, so it should not be parallelized.
+            return Gatherer.ofSequential(
+                // The initializer creates an ArrayList which holds the current open window.
+                () -> new ArrayList<TR>(windowSize),
+                // The integrator is invoked for each element consumed.
+                Gatherer.Integrator.ofGreedy((window, element, downstream) -> {
+                    // Add the element to the current open window.
+                    window.add(element);
+                    // Until we reach our desired window size, return true to signal that more elements are desired.
+                    if (window.size() < windowSize) return true;
+                    // When window is full, close it by creating a copy.
+                    var result = new ArrayList<TR>(window);
+                    // Clear the window so the next can be started.
+                    window.clear();
+                    // Send the closed window downstream.
+                    return downstream.push(result);
+                }),
+                // The combiner is omitted since this operation is intrinsically sequential, and thus cannot be parallelized. The finisher runs when there are no more elements to pass from the upstream.
+                (window, downstream) -> {
+                    // If the downstream still accepts more elements and the current open window is non-empty then send a copy of it downstream.
+                    if(!downstream.isRejecting() && !window.isEmpty()) {
+                        downstream.push(new ArrayList<TR>(window));
+                        window.clear();
+                    }
+                }
+            );
+        }
+        public static void testWindowFixedAdhoc() {
+            println(Stream.of(1,2,3,4,5,6,7,8,9).gather(getFixedWindowAdhoc(3)).toList());
+            // Prints:
+            //[[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        }
+      // Example 4. A parallelizable gatherer. When used in a parallel stream, a gatherer is only evaluated in parallel if it provides a combiner function. This parallelizable gatherer, for example, emits at most one element based upon a supplied selector function.
+        static <TR> Gatherer<TR, ?, TR> selectOne(BinaryOperator<TR> selector) {
+            // Validate input.
+            Objects.requireNonNull(selector, "selector must not be null");
+            // Private state to track information across elements.
+            class State {
+                TR value;            // The current best value.
+                boolean hasValue;    // {true} when value holds a valid value.
+            }
+            // Use the {of} factory method to construct a gatherer given a set of functions for {initializer}, {integrator}, {combiner}, and {finisher}.
+            return Gatherer.of(
+                // The initializer creates a new State instance.
+                State::new,
+                // The {integrator}; in this case we use {ofGreedy} to signal that this {integrator} will never short-circuit.
+                Gatherer.Integrator.ofGreedy((state, element, downstream) -> {
+                    if (!state.hasValue) {
+                        // The first element, just save it.
+                        state.value = element;
+                        state.hasValue = true;
+                    } else {
+                        // Select which value of the two to save, and save it.
+                        state.value = selector.apply(state.value, element);
+                    }
+                    return true;
+                }),
+                // The combiner, used during parallel evaluation.
+                (leftState, rightState) -> {
+                    if (!leftState.hasValue) {
+                        // If no value on the left, return the right.
+                        return rightState;
+                    } else if (!rightState.hasValue) {
+                        // If no value on the right, return the left.
+                        return leftState;
+                    } else {
+                        // If both sides have values, select one of them to keep and store it in the leftState, as that will be returned.
+                        leftState.value = selector.apply(leftState.value, rightState.value);
+                        return leftState;
+                    }
+                },
+                // The finisher.
+                (state, downstream) -> {
+                    // Emit the selected value, if there is one, downstream.
+                    if (state.hasValue) downstream.push(state.value);
+                }
+            );
+        }
+        public static void testselectOne() {
+            println(
+                Stream.generate(() -> ThreadLocalRandom.current().nextInt())
+                    .limit(1000)          // Take the first 1000 elements.
+                    .gather(selectOne(Math::max)) // Select the largest value seen.
+                    .parallel()                   // Execute in parallel.
+                    .findFirst()                  // Extract the largest value.
+            );
+            // Prints:
+            //Optional[99822]
+        }
+      // Example 5. Implement map(mapper).
+        public final static <T,R> Gatherer<T, ?, R> mapGatherer(Function<? super T, ? extends R> mapper) {
+            return Gatherer.of(
+                () -> (Void)null,
+                (nothing, element, downstream) -> downstream.push(mapper.apply(element)),
+                (l,r) -> l,
+                (nothing, downstream) -> {}
+            );
+        }
+        public static void testMapGatherer () {
+            println(Stream.of(1,2,3,4).gather(mapGatherer(i -> i + 1)).toList());
+            // Prints:
+            //[2, 3, 4, 5]
+        }
+        // Example 6. Implement flatMap(mapper).
+        public final static <T,R> Gatherer<T, ?, R> flatMapGatherer(Function<? super T, ? extends Stream<R>> mapper) {
+            return Gatherer.of(
+                () -> (Void)null,
+                (nothing, element, downstream) -> {
+                    try(Stream<? extends R> s = mapper.apply(element)) {
+                        return s == null || s.sequential().allMatch(downstream::push);
+                    }
+                },
+                (l,r) -> l,
+                (nothing, downstream) -> {}
+            );
+        }
+        public static void testFlatMapGatherer () {
+            println(Stream.of(1,2,3,4).gather(flatMapGatherer(i -> Stream.of(i + 1))).toList());
+            // Prints:
+            //[2, 3, 4, 5]
+        }
+        // Example 7. Implement takeWhile(predicate).
+        public final static <T> Gatherer<T, ?, T> takeWhileGatherer(Predicate<? super T> predicate) {
+            return Gatherer.of(
+                () -> (Void)null,
+                (nothing, element, downstream) -> predicate.test(element) && downstream.push(element),
+                (l, r) -> l,
+                (nothing, downstream) -> {}
+            );
+        }
+        public static void testTakeWhileGatherer () {
+            println(Stream.of(1,2,3,4).gather(takeWhileGatherer(i -> i < 3)).toList());
+            // Prints:
+            //[1, 2]
+        }
+        // Example 8. Implement limit(N).
+        public static <M> Gatherer<M, ?, M> limitGatherer(long limit) {
+            if (limit < 0) throw new IllegalArgumentException("'limit' has to be non-negative");
+            class At { long n = 0; }
+            return Gatherer.of(
+                At::new,
+                (at, element, downstream) -> at.n < limit && downstream.push(element) && ++at.n < limit,
+                Gatherer.defaultCombiner(),
+                (at, downstream) -> {}
+            );
+        }
+        public static void testLimitGatherer () {
+            println(Stream.of(1,2,3,4).gather(limitGatherer(2)).toList());
+            // Prints:
+            //[1, 2]
+        }
+        // Example 9. Implement prefix scanLeft.
+        public static <T,R> Gatherer<T,?,R> scanLeftGatherer(R initial, BiFunction<R,T,R> scanner) {
+            class State { R current = initial; }
+            return Gatherer.of(
+                State::new,
+                (state, element, downstream) -> downstream.push(state.current = scanner.apply(state.current, element)),
+                Gatherer.defaultCombiner(),
+                (state, downstream) -> {}
+            );
+        }
+        public static void testScanLeftGatherer () {
+            println(
+                Stream.of(1,2,3,4).gather(scanLeftGatherer("'", (acc, elem) -> acc + elem + "'")).toList()
+            );
+            // Prints:
+            //['1', '1'2', '1'2'3', '1'2'3'4']
+        }
+        // Example 10. Implement fold(initial, folder).
+        public static <T> Gatherer<T,?,T> foldGatherer(T initial, BinaryOperator<T> folder) {
+            class State { T current = initial; }
+            return Gatherer.of(
+                State::new,
+                (state, element, downstream) -> {
+                    state.current = folder.apply(state.current, element);
+                    return true;
+                },
+                (l, r) -> {
+                    l.current = folder.apply(l.current, r.current);
+                    return l;
+                },
+                (state, downstream) -> downstream.push(state.current)
+            );
+        }
+        public static void testFoldGatherer () {
+            println(Stream.of(1,2,3,4).gather(foldGatherer(0, (acc, elem) -> acc + elem)).toList());
+            // Prints:
+            //[10]
+        }
+        // Example 11. Implement foldLeft(initial, folder).
+        public static <T,R> Gatherer<T,?,R> foldLeftGatherer(R initial, BiFunction<R,T,R> folder) {
+            class State { R current = initial; }
+            return Gatherer.of(
+                State::new,
+                (state, element, downstream) -> {
+                    state.current = folder.apply(state.current, element);
+                    return true;
+                },
+                Gatherer.defaultCombiner(),
+                (state, downstream) -> downstream.push(state.current)
+            );
+        }
+        public static void testFoldLeftGatherer () {
+            println(Stream.of(1,2,3,4).gather(foldLeftGatherer(0L, (acc, elem) -> acc + elem)).toList());
+            // Prints:
+            //[10]
+        }
+        // Example 12. Implement deduplicateAdjacent().
+        public static <T> Gatherer<T,?,T> deduplicateAdjacentGatherer() {
+            class State { T prev; boolean hasPrev; }
+            return Gatherer.of(
+                State::new,
+                (state, element, downstream) -> {
+                    if (!state.hasPrev) {
+                        state.hasPrev = true;
+                        state.prev = element;
+                        return downstream.push(element);
+                    } else if (!Objects.equals(state.prev, element)) {
+                        state.prev = element;
+                        return downstream.push(element);
+                    } else {
+                        return true; // skip duplicate
+                    }
+                },
+                Gatherer.defaultCombiner(),
+                (state, downstream) -> {}
+            );
+        }
+        public static void testDeduplicateAdjacentGatherer () {
+            println(Stream.of(1,2,2,3,2,4).gather(deduplicateAdjacentGatherer()).toList());
+            // Prints:
+            //[1, 2, 3, 2, 4]
+        }
+    /*
+     }
+    }
+
+    Alternatives {
+     https://cr.openjdk.org/~vklang/Gatherers.html Gathering the streams. version 0.2.
+     https://bugs.openjdk.org/browse/JDK-8132369 Define an SPI to plugin new intermediate and terminal stream operations.
+
+     Over the years, many new operations for streams have been proposed. Each of them may be useful in some situation, but many of them are too narrow to be included in the core Stream API. We’d like for people to be able to plug these operations in via an extension point, as with Stream::collect.
+     Here are some examples of proposed intermediate operations that are not easily expressible as intermediate operations on Stream today.
+      1. Folds. Folding is a generalization of reduction. With reduction, the result type is the same as the element type, the combiner is associative, and the initial value is an identity for the combiner. For a fold, these conditions are not required, though we give up parallelizability.
+        Example: foldLeft("", (str,elem) -> str + " " + elem.toString()) over the values [1,2,3] yields ["1 2 3"].
+       See https://bugs.openjdk.org/browse/JDK-8133680 & https://bugs.openjdk.org/browse/JDK-8292845.
+      2. Unfolds. This takes an aggregate and decomposes it into elements. An unfold can reverse the operation of the above fold example using Scanner or String::split.
+        Example: unfold(e -> new Scanner(e), Scanner::hasNextInt, Scanner::nextInt) ["1 2 3"] yields [1,2,3].
+       See: https://bugs.openjdk.org/browse/JDK-8151408.
+      3. Barriers. Usually all operations of a stream pipeline can run simultaneously as data is available. In some cases, we may wish to have a barrier that requires that the entirety of one operation is completed before providing any elements to the next operation.
+        Example: someStream.a(...).barrier(someEffect)...
+       would require that all effects from {a} are completed before executing someEffect or producing any downstream values.
+       See: https://bugs.openjdk.org/browse/JDK-8294246.
+      4. Windowing. Given a stream, we may wish to construct a stream which groups the original elements, either in overlapping or disjoint groups.
+        Example: fixedWindow(2) over the values [1,2,3,4,5] yields [[1,2],[3,4],[5]]. Example: slidingWindow(2) over the values [1,2,3] yields [[1,2],[2,3]].
+       See: https://stackoverflow.com/questions/34158634/how-to-transform-a-java-stream-into-a-sliding-window.
+      5. Prefix scans. Prefix scans are a stream of incremental reductions. Perhaps surprisingly, some prefix scans are parallelizable, and we are exploring adding support for that beyond Arrays.parallelPrefix().
+        Example: scan((sum, next) -> sum + next) over values [1,2,3,4] yields [1,3,6,10]
+       See: https://stackoverflow.com/questions/55265797/cumulative-sum-using-java-8-stream-api.
+      6. Duplicated elements. The {distinct} operation will remove duplicates; sometimes we want only the elements that are duplicated.
+        Example: duplicates(Object::equals) over values [1,1,2,3,4] yields [1]
+       See: https://stackoverflow.com/questions/27677256/java-8-streams-to-find-the-duplicate-elements.
+      7. Running duplicate elimination. Here, we want to eliminate adjacent repeated elements.
+        Example: collapseRuns(Object::equals) over values [1,1,2,3,3] yields [1,2,3]
+     There is some third-party libraries manly targeted Java 8 that provide extra Stream functionality, for example:
+      - Cyclops X https://github.com/aol/cyclops
+      - JOOL/jOOλ https://github.com/jOOQ/jOOL https://blog.jooq.org/2016-will-be-the-year-remembered-as-when-java-finally-had-window-functions/
+      - StreamEx https://github.com/amaembo/streamex
+
+    }
+    */
+
+        /**
+         * From java.util.stream.Gatherer.
+         */
+        public static class FromGatherer {
+        /*
+        An intermediate operation that transforms a stream of input elements into a stream of output elements, optionally applying a final action when the end of the upstream is reached. The transformation may be stateless or stateful, and may buffer input before producing any output.
+        Gatherer operations can be performed either sequentially, or be parallelized -- if a combiner function is supplied.
+        There are many examples of gathering operations, including but not limited to: grouping elements into batches (windowing functions); de-duplicating consecutively similar elements; incremental accumulation functions (prefix scan); incremental reordering functions, etc. The class Gatherers provides implementations of common gathering operations.
+        A Gatherer is specified by four functions that work together to process input elements, optionally using intermediate state, and optionally perform a final action at the end of input. They are:
+         - creating a new, potentially mutable, state (initializer())
+         - integrating a new input element (integrator())
+         - combining two states into one (combiner())
+         - performing an optional final action (finisher())
+        Each invocation of initializer(), integrator(), combiner(), and finisher() must return a semantically identical result.
+        Implementations of Gatherer must not capture, retain, or expose to other threads, the references to the state instance, or the downstream {Gatherer.Downstream} for longer than the invocation duration of the method which they are passed to.
+        Performing a gathering operation with a Gatherer should produce a result equivalent to:
+            Gatherer.Downstream<? super R> downstream = ...;
+            A state = gatherer.initializer().get();
+            for (T t : data) {
+                gatherer.integrator().integrate(state, t, downstream);
+            }
+            gatherer.finisher().accept(state, downstream);
+        However, the library is free to partition the input, perform the integrations on the partitions, and then use the combiner function to combine the partial results to achieve a gathering operation. (Depending on the specific gathering operation, this may perform better or worse, depending on the relative cost of the integrator and combiner functions).
+        In addition to the predefined implementations in Gatherers, the static factory methods of(...) and ofSequential(...) can be used to construct gatherers. For example, you could create a gatherer that implements the equivalent of Stream.map(java.util.function.Function) with:
+            public static <T, R> Gatherer<T, ?, R> map(Function<? super T, ? extends R> mapper) {
+                return Gatherer.of(
+                    (unused, element, downstream) -> // integrator
+                        downstream.push(mapper.apply(element))
+                );
+            }
+        Gatherers are designed to be composed; two or more Gatherers can be composed into a single Gatherer using the andThen(Gatherer) method.
+            // using the implementation of `map` as seen above
+            Gatherer<Integer, ?, Integer> increment = map(i -> i + 1);
+            Gatherer<Object, ?, String> toString = map(i -> i.toString());
+            Gatherer<Integer, ?, String> incrementThenToString = increment.andThen(toString);
+        As an example, a Gatherer implementing a sequential Prefix Scan could be done the following way:
+            public static <T, R> Gatherer<T, ?, R> scan(
+                Supplier<R> initial,
+                BiFunction<? super R, ? super T, ? extends R> scanner
+            ) {
+                class State { R current = initial.get(); }
+                return Gatherer.<T, State, R>ofSequential(
+                     State::new,
+                     Gatherer.Integrator.ofGreedy((state, element, downstream) -> {
+                         state.current = scanner.apply(state.current, element);
+                         return downstream.push(state.current);
+                     })
+                );
+            }
+        Example of usage:
+            // will contain: ["1", "12", "123", "1234", "12345", "123456", "1234567", "12345678", "123456789"]
+            List<String> numberStrings =
+                Stream.of(1,2,3,4,5,6,7,8,9).gather(scan(() -> "", (string, number) -> string + number)).toList();
+
+        Implementation Requirements.
+        Libraries that implement transformations based on Gatherer, such as Stream.gather(Gatherer), must adhere to the following constraints:
+         - Gatherers whose initializer is defaultInitializer() are considered to be stateless, and invoking their initializer is optional.
+         - Gatherers whose integrator is an instance of Gatherer.Integrator.Greedy can be assumed not to short-circuit, and the return value of invoking Gatherer.Integrator.integrate(Object, Object, Gatherer.Downstream) does not need to be inspected.
+         - The first argument passed to the integration function, both arguments passed to the combiner function, and the argument passed to the finisher function must be the result of a previous invocation of the initializer or combiner functions.
+         - The implementation should not do anything with the result of any of the initializer or combiner functions other than to pass them again to the integrator, combiner, or finisher functions.
+         - Once a state object is passed to the combiner or finisher function, it is never passed to the integrator function again.
+         - When the integrator function returns false, it shall be interpreted just as if there were no more elements to pass it.
+         - For parallel evaluation, the gathering implementation must manage that the input is properly partitioned, that partitions are processed in isolation, and combining happens only after integration is complete for both partitions.
+         - Gatherers whose combiner is defaultCombiner() may only be evaluated sequentially. All other combiners allow the operation to be parallelized by initializing each partition in separation, invoking the integrator until it returns false, and then joining each partitions state using the combiner, and then invoking the finisher on the joined state. Outputs and state later in the input sequence will be discarded if processing an earlier partition short-circuits.
+         - Gatherers whose finisher is defaultFinisher() are considered to not have an end-of-stream hook and invoking their finisher is optional.
+        */
+        }
+
+        public static void testStreamGatherers() { }
+        public static <T, R> Gatherer<T, ?, R> scan(
+                Supplier<R> initial,
+                BiFunction<? super R, ? super T, ? extends R> scanner
+        ) {
+            class State { R current = initial.get(); }
+            return Gatherer.<T, State, R>ofSequential(
+                    State::new,
+                    Gatherer.Integrator.ofGreedy((state, element, downstream) -> {
+                        state.current = scanner.apply(state.current, element);
+                        return downstream.push(state.current);
+                    })
+            );
+        }
+        List<String> numberStrings =
+                Stream.of(1,2,3,4,5,6,7,8,9).gather(scan(() -> "", (string, number) -> string + number)).toList();
+    }
+
 }

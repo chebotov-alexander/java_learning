@@ -21,18 +21,12 @@ public class Pair<T>
     public void setSecond(T newValue) { second = newValue; }
 
     public String toString() { return "(" + first + ", " + second + ")"; }
-
-    public static <T> Pair<T> makePair(Supplier<T> constr)
-    {
-        return new Pair<>(constr.get(), constr.get());
-    }
-
+    public boolean equalTo(Pair<T> other) { return this.first.equals(other.first) && this.second.equals(other.second); }
+    public Pair<T> copy() { return new Pair<T>(first, second); }
+    public static <T> Pair<T> makePair(Supplier<T> constr) { return new Pair<>(constr.get(), constr.get()); }
     public static <T> Pair<T> makePair(Class<T> cl)
     {
-        try {
-            return new Pair<>(cl.getConstructor().newInstance(),
-                    cl.getConstructor().newInstance());
-        }
+        try { return new Pair<>(cl.getConstructor().newInstance(), cl.getConstructor().newInstance()); }
         catch (Exception e) { return null; }
     }
 }
